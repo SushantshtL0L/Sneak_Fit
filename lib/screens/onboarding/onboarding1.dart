@@ -7,7 +7,7 @@ class Onboarding1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white, // change background if you want
+      color: const Color(0xFFDFFFEA),
       child: Stack(
         children: [
           Center(

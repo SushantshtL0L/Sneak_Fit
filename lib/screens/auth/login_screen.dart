@@ -21,7 +21,7 @@ class LoginScreen extends StatelessWidget {
               SizedBox(
                 height: 120,
                 child: Image.asset(
-                  "assets/images/Logo.png", 
+                  "assets/images/Logo.png",
                   fit: BoxFit.contain,
                 ),
               ),
@@ -52,11 +52,17 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
-              // Login Button
+              // Login Button with validation
               MyButton(
                 text: "Log In",
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/home');
+                  if (emailController.text.isEmpty || passController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Please enter email and password")),
+                    );
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/dashboard');
+                  }
                 },
                 color: Colors.green,
               ),
@@ -77,7 +83,7 @@ class LoginScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Sign in text
+              // Sign up text
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -87,7 +93,7 @@ class LoginScreen extends StatelessWidget {
                       Navigator.pushNamed(context, '/signup');
                     },
                     child: const Text(
-                      "Sign in",
+                      "Sign up",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.green,
