@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sneak_fit/screens/auth/login_screen.dart';
 import 'onboarding1.dart';
 import 'onboarding2.dart';
 import 'onboarding3.dart';
@@ -20,8 +21,8 @@ class _OnboardingMainState extends State<OnboardingMain> {
       children: [
         Onboarding1(onNext: () => controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn)),
         Onboarding2(onNext: () => controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn)),
-        
-        const Onboarding3(),
+        Onboarding3(onNext: () => controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn)),
+        const LoginScreen(),
       ],
     );
   }

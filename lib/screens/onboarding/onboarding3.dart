@@ -22,7 +22,7 @@ class Onboarding3 extends StatelessWidget {
             bottom: 70,
             child: ElevatedButton(
               onPressed: onNext,
-              child: const Text("Next", selectionColor: Colors.greenAccent,),
+              child: const Text("Get Started", selectionColor: Colors.greenAccent,),
             ),
           )
         ],

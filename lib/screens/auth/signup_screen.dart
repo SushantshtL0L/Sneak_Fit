@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../../widgets/my_button.dart';
 import '../../widgets/my_textfield.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatelessWidget {
+  const SignupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final nameController = TextEditingController();
     final emailController = TextEditingController();
     final passController = TextEditingController();
 
@@ -17,25 +18,40 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo
+              // Logo (same as login)
               SizedBox(
                 height: 120,
                 child: Image.asset(
-                  "assets/images/Logo.png", // Add your logo image here
+                  "assets/images/Logo.png",
                   fit: BoxFit.contain,
                 ),
               ),
 
               const SizedBox(height: 40),
 
-              // Title
+              // Title (same style as login)
               const Text(
-                "Login to Your Account",
+                "Create Your Account",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 30),
 
-              // Email Field
+              // Full Name
+              MyTextField(
+                hint: "Full Name",
+                controller: nameController,
+                prefixIcon: Icons.person,
+              ),
+              const SizedBox(height: 16),
+
+              MyTextField(
+                hint: "Phone Number",
+                controller: nameController,
+                prefixIcon: Icons.phone,
+              ),
+              const SizedBox(height: 16),
+
+              // Email
               MyTextField(
                 hint: "Email",
                 controller: emailController,
@@ -43,7 +59,7 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Password Field
+              // Password
               MyTextField(
                 hint: "Password",
                 controller: passController,
@@ -52,9 +68,9 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
-              // Login Button
+              // Sign Up Button
               MyButton(
-                text: "Log In",
+                text: "Sign Up",
                 onPressed: () {
                   Navigator.pushReplacementNamed(context, '/home');
                 },
@@ -63,7 +79,7 @@ class LoginScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // OR separator
+              // OR separator (same as login screen)
               Row(
                 children: const [
                   Expanded(child: Divider(thickness: 1)),
@@ -77,17 +93,17 @@ class LoginScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Sign in text
+              // Already have an account? -> Login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Doesn't have an account? "),
+                  const Text("Already have an account? "),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, '/signup');
+                      Navigator.pushReplacementNamed(context, '/login');
                     },
                     child: const Text(
-                      "Sign in",
+                      "Login",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.green,
