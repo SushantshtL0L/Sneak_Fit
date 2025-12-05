@@ -9,7 +9,7 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("SneakFit Dashboard"),
         backgroundColor: Colors.green,
-        centerTitle: true, // optional: center the title
+        centerTitle: true, 
       ),
       body: const Center(
         child: Text(
