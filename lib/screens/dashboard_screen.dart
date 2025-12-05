@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
 
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("SneakFit Dashboard"),
-        backgroundColor: Colors.green,
-        centerTitle: true, 
+        title: const Text("SneakFit Home"),
+        backgroundColor: Colors.teal,
+        elevation: 4,
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
       ),
-      body: const Center(
-        child: Text(
-          "Welcome to SneakFit Home!",
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+      body: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(20),
+        child: const Text(
+          "Hello! Welcome to SneakFit.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
         ),
       ),
     );
