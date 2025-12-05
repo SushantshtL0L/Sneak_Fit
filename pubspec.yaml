@@ -90,4 +90,5 @@ flutter:
 
   assets:
     - assets/images/Logo.png
+    - assets/images/splash.png
 

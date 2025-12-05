@@ -12,6 +12,7 @@ class Onboarding2 extends StatelessWidget {
           const Center(
             child: Text(
               "Find your best style with SneakFit",
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 30),
             ),
           ),
@@ -19,7 +20,15 @@ class Onboarding2 extends StatelessWidget {
           Positioned(
             right: 20,
             bottom: 70,
+            height: 50,
+            width: 150,
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green, // CHANGE BUTTON COLOR HERE
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               onPressed: onNext,
               child: const Text("Next", selectionColor: Colors.greenAccent,),
             ),

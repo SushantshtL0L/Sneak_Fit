@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sneak_fit/screens/onboarding/onboarding_main.dart';
-import 'onboarding/onboarding_main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,15 +24,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Text(
-          "SneakFit",
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
+    return Scaffold(
+      body: SizedBox.expand(
+        child: Image.asset(
+          "assets/images/splash.png",
+          fit: BoxFit.cover,
         ),
       ),
     );
