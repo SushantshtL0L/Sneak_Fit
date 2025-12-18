@@ -91,4 +91,15 @@ flutter:
   assets:
     - assets/images/Logo.png
     - assets/images/splash.png
+    - assets/images/shoe.png
+
+  fonts:
+    - family: OpenSans
+      fonts:
+        - asset: assets/fonts/OpenSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/OpenSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 700
 

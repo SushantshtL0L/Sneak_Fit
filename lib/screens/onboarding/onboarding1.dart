@@ -25,12 +25,14 @@ class Onboarding1 extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                const Text(
+                Text(
                   "WELCOME TO SNEAKFIT",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
+                    fontFamily: 'OpenSans',        
+                    fontWeight: FontWeight.w400,  
                     fontSize: 28,
-                    color: Colors.black
+                    color: Colors.black,
                   ),
                 ),
               ],
@@ -45,7 +47,7 @@ class Onboarding1 extends StatelessWidget {
             width: 150,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green, // CHANGE BUTTON COLOR HERE
+                backgroundColor: Colors.green,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -54,6 +56,8 @@ class Onboarding1 extends StatelessWidget {
               child: const Text(
                 "Next",
                 style: TextStyle(
+                  fontFamily: 'OpenSans',        
+                  fontWeight: FontWeight.w400,  
                   fontSize: 18,
                   color: Colors.white,
                 ),
