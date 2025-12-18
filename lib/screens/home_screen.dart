@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sneak_fit/screens/all_products_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             promoBanner(),
             const SizedBox(height: 24),
-            sectionHeader(),
+            sectionHeader(context),
             const SizedBox(height: 12),
             productGrid(),
           ],
@@ -97,21 +98,32 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget sectionHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
-        Text(
-          "Most Popular",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        Text(
+ Widget sectionHeader(BuildContext context) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      const Text(
+        "Most Popular",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AllProductsScreen(),
+            ),
+          );
+        },
+        child: const Text(
           "SEE ALL",
           style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
   Widget productGrid() {
     return GridView.builder(
