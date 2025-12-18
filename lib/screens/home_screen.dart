@@ -61,10 +61,13 @@ class HomeScreen extends StatelessWidget {
               children: const [
                 Text(
                   "GoldStar Nepal",
+                  
                   style: TextStyle(
+                    fontFamily: 'OpenSans',     
+                    fontWeight: FontWeight.w400, 
                     color: Colors.white,
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    
                   ),
                 ),
                 SizedBox(height: 8),
