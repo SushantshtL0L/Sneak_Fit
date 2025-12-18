@@ -25,8 +25,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("SneakFit Home"),
-        backgroundColor: Colors.teal,
+        title: const Text("SneakFit"),
+        // backgroundColor: Colors.teal,
         elevation: 4,
         centerTitle: true,
         shape: const RoundedRectangleBorder(
