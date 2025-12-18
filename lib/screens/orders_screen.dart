@@ -13,7 +13,9 @@ class OrdersScreen extends StatelessWidget {
           children: const [
             Icon(Icons.receipt_long, size: 60, color: Colors.grey),
             SizedBox(height: 16),
-            Text("You have no orders yet", style: TextStyle(fontSize: 20)),
+            Text("You have no orders yet", style: TextStyle(
+
+              fontSize: 20)),
           ],
         ),
       ),
