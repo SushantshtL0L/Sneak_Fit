@@ -11,7 +11,7 @@ class AllProductsScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Go back to previous page (HomeScreen)
+            Navigator.pop(context); 
           },
         ),
         backgroundColor: Colors.white,
