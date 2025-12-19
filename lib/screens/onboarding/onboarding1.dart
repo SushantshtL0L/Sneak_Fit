@@ -30,7 +30,7 @@ class Onboarding1 extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontFamily: 'OpenSans',        
-                    fontWeight: FontWeight.w400,  
+                    fontWeight: FontWeight.bold,  
                     fontSize: 28,
                     color: Colors.black,
                   ),

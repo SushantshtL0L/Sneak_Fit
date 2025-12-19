@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sneak_fit/screens/all_products_screen.dart';
+import 'package:sneak_fit/screens/product_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,9 +17,9 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             promoBanner(),
             const SizedBox(height: 24),
-            sectionHeader(),
+            sectionHeader(context),
             const SizedBox(height: 12),
-            productGrid(),
+            productGrid(context),
           ],
         ),
       ),
@@ -62,9 +64,10 @@ class HomeScreen extends StatelessWidget {
                 Text(
                   "GoldStar Nepal",
                   style: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontWeight: FontWeight.w400,
                     color: Colors.white,
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 8),
@@ -94,23 +97,33 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget sectionHeader() {
+  Widget sectionHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
-        Text(
+      children: [
+        const Text(
           "Most Popular",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        Text(
-          "SEE ALL",
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AllProductsScreen(),
+              ),
+            );
+          },
+          child: const Text(
+            "SEE ALL",
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
         ),
       ],
     );
   }
 
-  Widget productGrid() {
+  Widget productGrid(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -123,76 +136,93 @@ class HomeScreen extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         return productCard(
-          brand: index.isEven ? "Goldstar" : "ADIDAS",
+          context: context,
+          brand: index.isEven ? "GoldStar Nepal" : "ADIDAS",
           rating: index.isEven ? "4.5" : "4.7",
-          price: index.isEven ? "Rs. 2300" : "Rs. 1619",
+          price: index.isEven ? "Rs 2000" : "Rs 1619",
         );
       },
     );
   }
 
   Widget productCard({
+    required BuildContext context,
     required String brand,
     required String rating,
     required String price,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Center(
-              child: Image.asset(
-                "assets/images/shoe.png",
-                fit: BoxFit.contain,
-              ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailScreen(
+              brand: brand,
+              rating: rating,
+              price: price,
+              image: "assets/images/shoe.png",
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            brand,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            "Men White & Black\nColourblocked IDP Sneakers",
-            style: TextStyle(fontSize: 11, color: Colors.grey),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(Icons.star, size: 14, color: Colors.orange),
-              const SizedBox(width: 4),
-              Text(rating, style: const TextStyle(fontSize: 12)),
-              const Spacer(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  "4300 SOLD",
-                  style: TextStyle(fontSize: 10),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Center(
+                child: Image.asset(
+                  "assets/images/shoe.png",
+                  fit: BoxFit.contain,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            price,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              brand,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              "Men White & Black\nColourblocked IDP Sneakers",
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.star, size: 14, color: Colors.orange),
+                const SizedBox(width: 4),
+                Text(rating, style: const TextStyle(fontSize: 12)),
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    "4300 SOLD",
+                    style: TextStyle(fontSize: 10),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              price,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

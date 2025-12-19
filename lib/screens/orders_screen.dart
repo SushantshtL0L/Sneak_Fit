@@ -6,19 +6,28 @@ class OrdersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Orders")),
+      appBar: AppBar(
+        title: const Text("Orders"),
+        backgroundColor: Colors.green,
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
             Icon(Icons.receipt_long, size: 60, color: Colors.grey),
             SizedBox(height: 16),
-            Text("You have no orders yet", style: TextStyle(
-
-              fontSize: 20)),
+            Text(
+              "You have no orders yet",
+              style: TextStyle(
+                fontFamily: 'OpenSans',
+                fontWeight: FontWeight.w400,
+                fontSize: 20,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+

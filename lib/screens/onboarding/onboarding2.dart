@@ -27,7 +27,7 @@ class Onboarding2 extends StatelessWidget {
 
                 const Text(
                   "Find your best style with SneakFit",
-                  
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 35,
                     fontWeight: FontWeight.bold,
