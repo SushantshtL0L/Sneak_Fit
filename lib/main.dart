@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sneak_fit/screens/dashboard_screen.dart';
 import 'screens/splash_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/signup_screen.dart';
+import 'features/auth/login_screen.dart';
+import 'features/auth/signup_screen.dart';
 
 
 
