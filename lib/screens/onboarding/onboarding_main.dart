@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sneak_fit/features/auth/login_screen.dart';
+import 'package:sneak_fit/features/auth/presentation/pages/login_page.dart';
 import 'onboarding1.dart';
 import 'onboarding2.dart';
 import 'onboarding3.dart';

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../widgets/my_button.dart';
-import '../../widgets/my_textfield.dart';
+import '../../../../widgets/my_button.dart';
+import '../../../../widgets/my_textfield.dart';
 
-class SignupScreen extends StatelessWidget {
-  const SignupScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final nameController = TextEditingController();
     final emailController = TextEditingController();
     final passController = TextEditingController();
 
@@ -18,7 +17,7 @@ class SignupScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo (same as login)
+              // Logo
               SizedBox(
                 height: 120,
                 child: Image.asset(
@@ -29,29 +28,14 @@ class SignupScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // Title (same style as login)
+              // Title
               const Text(
-                "Create Your Account",
+                "Login to Your Account",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 30),
 
-              // Full Name
-              MyTextField(
-                hint: "Full Name",
-                controller: nameController,
-                prefixIcon: Icons.person,
-              ),
-              const SizedBox(height: 16),
-
-              MyTextField(
-                hint: "Phone Number",
-                controller: nameController,
-                prefixIcon: Icons.phone,
-              ),
-              const SizedBox(height: 16),
-
-              // Email
+              // Email Field
               MyTextField(
                 hint: "Email",
                 controller: emailController,
@@ -59,7 +43,7 @@ class SignupScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Password
+              // Password Field
               MyTextField(
                 hint: "Password",
                 controller: passController,
@@ -68,18 +52,24 @@ class SignupScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
-              // Sign Up Button
+              // Login Button with validation
               MyButton(
-                text: "Sign Up",
+                text: "Log In",
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/home');
+                  if (emailController.text.isEmpty || passController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Please enter email and password")),
+                    );
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/dashboard');
+                  }
                 },
                 color: Colors.green,
               ),
 
               const SizedBox(height: 20),
 
-              // OR separator (same as login screen)
+              // OR separator
               Row(
                 children: const [
                   Expanded(child: Divider(thickness: 1)),
@@ -93,17 +83,17 @@ class SignupScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Already have an account? -> Login
+              // Sign up text
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Already have an account? "),
+                  const Text("Doesn't have an account? "),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, '/login');
+                      Navigator.pushNamed(context, '/signup');
                     },
                     child: const Text(
-                      "Login",
+                      "Sign up",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.green,
