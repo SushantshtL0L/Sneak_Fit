@@ -42,6 +42,9 @@ dependencies:
   provider: ^6.0.7
   flutter_riverpod: ^2.4.0
   path_provider: ^2.0.15
+  shared_preferences: ^2.2.3
+  flutter_secure_storage: ^9.2.2
+
 
   #Networking
   dio: ^5.4.1
