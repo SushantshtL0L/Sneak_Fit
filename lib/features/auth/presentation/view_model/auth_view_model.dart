@@ -24,7 +24,7 @@ class RegisterUsecaseParams extends Equatable {
   });
 
   @override
-  List<Object?> get props => [userName, email, password, phoneNumber, profileImage];
+  List<Object?> get props => [userName, email, password, profileImage];
 }
 
 /// Riverpod provider for RegisterUsecase
@@ -47,7 +47,6 @@ class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> 
       userName: params.userName,
       email: params.email,
       password: params.password,
-      phoneNumber: params.phoneNumber, // mapped phoneNumber
       profileImage: params.profileImage,
     );
 

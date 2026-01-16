@@ -47,7 +47,6 @@ class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> 
       userName: params.userName,
       email: params.email,
       password: params.password,
-      phoneNumber: params.phoneNumber, // mapped phoneNumber
       profileImage: params.profileImage,
     );
 
