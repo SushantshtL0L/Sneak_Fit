@@ -2,12 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 //shared preds provider
-final SharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPrefrence must be overridden in main.dart');
 });
 //provider
-final UserSessionServiceProvider = Provider<UserSessionService>((ref) {
-  final prefs = ref.read(SharedPreferencesProvider);
+final userSessionServiceProvider = Provider<UserSessionService>((ref) {
+  final prefs = ref.read(sharedPreferencesProvider);
   return UserSessionService(prefs: prefs);
 });
 
@@ -66,4 +66,35 @@ class UserSessionService {
   String? getUsername() {
     return _prefs.getString(_keyUsername);
   }
+
+  String? getProfilePicture() {
+    return _prefs.getString(_keyProfilePicture);
+  }
+
+  Future<UserSession?> getUserSession() async {
+    if (!isLoggedIn()) {
+      return null;
+    }
+
+    return UserSession(
+      userId: getUserId() ?? '',
+      email: getUserEmail() ?? '',
+      username: getUsername() ?? '',
+      profilePicture: getProfilePicture(),
+    );
+  }
+}
+
+class UserSession {
+  final String userId;
+  final String email;
+  final String username;
+  final String? profilePicture;
+
+  UserSession({
+    required this.userId,
+    required this.email,
+    required this.username,
+    this.profilePicture,
+  });
 }

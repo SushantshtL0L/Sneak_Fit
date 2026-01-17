@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/datasources/local/auth_local_datasource.dart';
+import '../view_model/auth_view_model.dart';
+import '../state/auth_state.dart';
 import '../widgets/my_button.dart';
 import '../widgets/my_textfield.dart';
 
@@ -40,23 +41,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    final authDatasource = ref.read(authLocalDatasourceProvider);
-    final user = await authDatasource.login(email, password);
-
-    if (user != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login successful!")),
-      );
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid email or password")),
-      );
-    }
+    await ref.read(authViewModelProvider.notifier).login(email, password);
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
+
+    // Listen for state changes to handle navigation and snackbars
+    ref.listen(authViewModelProvider, (previous, next) {
+      if (next.status == AuthStatus.authenticated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Login successful!")),
+        );
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else if (next.status == AuthStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage ?? "Invalid email or password")),
+        );
+      }
+    });
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -81,6 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               MyButton(
                 text: "Login",
                 color: Colors.green,
+                isLoading: authState.status == AuthStatus.loading,
                 onPressed: _login,
               ),
               const SizedBox(height: 20),
