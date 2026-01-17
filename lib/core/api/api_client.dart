@@ -160,6 +160,7 @@ class _AuthInterceptor extends Interceptor {
 
     final isAuthEndpoint =
         options.path == ApiEndpoints.userLogin ||
+        options.path == ApiEndpoints.userRegister ||
         options.path == ApiEndpoints.users;
 
     if (!isPublicGet && !isAuthEndpoint) {
