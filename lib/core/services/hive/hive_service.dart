@@ -1,6 +1,10 @@
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../../features/auth/data/models/auth_hive_model.dart';
+
+final hiveServiceProvider = Provider<HiveService>((ref) {
+  throw UnimplementedError('HiveService must be overridden in main.dart');
+});
 
 class HiveService {
   static const String _authBoxName = 'auth_box';
@@ -8,8 +12,7 @@ class HiveService {
 
   // Initialize Hive
   Future<void> init() async {
-    final dir = await getApplicationDocumentsDirectory();
-    Hive.init(dir.path);
+    await Hive.initFlutter();
 
     // Register adapter only once
     if (!Hive.isAdapterRegistered(AuthHiveModelAdapter().typeId)) {
