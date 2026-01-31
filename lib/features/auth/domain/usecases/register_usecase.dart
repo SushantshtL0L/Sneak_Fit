@@ -17,7 +17,7 @@ class RegisterUsecaseParams extends Equatable {
   final String phoneNumber;
   final String? profileImage;
 
-  RegisterUsecaseParams({
+  const RegisterUsecaseParams({
     required this.name,
     required this.userName,
     required this.email,
@@ -42,7 +42,7 @@ final registerUsecaseProvider = Provider<RegisterUsecase>((ref) {
 class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> {
   final IAuthRepository _authRepository;
 
-  RegisterUsecase({required IAuthRepository authRepository})
+  const RegisterUsecase({required IAuthRepository authRepository})
       : _authRepository = authRepository;
 
   @override
