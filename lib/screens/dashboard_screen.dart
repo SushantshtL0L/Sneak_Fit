@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'home_screen.dart';
 import 'cart_screen.dart';
 import 'orders_screen.dart';
 import 'profile_screen.dart';
+import '../features/item/presentation/pages/add_item_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,35 +28,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("SneakFit"),
-        // backgroundColor: Colors.teal,
-        elevation: 4,
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(16),
+        elevation: 4,
+      ),
+
+      body: _pages[_currentIndex],
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AddItemScreen(),
+            ),
+          );
+        },
+        backgroundColor: Colors.black,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      bottomNavigationBar: SafeArea(
+        child: BottomAppBar(
+          elevation: 12,
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8,
+          child: SizedBox(
+            height: 64, // ✅ safe height
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(Icons.home, 'Home', 0),
+                _navItem(Icons.shopping_cart, 'Cart', 1),
+
+                const SizedBox(width: 48), // space for FAB
+
+                _navItem(Icons.receipt_long, 'Orders', 2),
+                _navItem(Icons.person, 'Profile', 3),
+              ],
+            ),
           ),
         ),
       ),
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_bag_outlined), label: "Cart"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: "Orders"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: "Profile"),
-        ],
+    );
+  }
+
+  Widget _navItem(IconData icon, String label, int index) {
+    final isSelected = _currentIndex == index;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 24, // ✅ reduced size
+              color: isSelected ? Colors.black : Colors.grey,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11, // ✅ smaller text
+                color: isSelected ? Colors.black : Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
