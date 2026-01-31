@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../features/auth/data/models/auth_hive_model.dart';
+import '../../../features/item/data/models/item_hive_model.dart';
 
 final hiveServiceProvider = Provider<HiveService>((ref) {
   throw UnimplementedError('HiveService must be overridden in main.dart');
@@ -8,18 +9,25 @@ final hiveServiceProvider = Provider<HiveService>((ref) {
 
 class HiveService {
   static const String _authBoxName = 'auth_box';
+  static const String _itemBoxName = 'item_box';
+  
   late Box<AuthHiveModel> _authBox;
+  late Box<ItemHiveModel> _itemBox;
 
   // Initialize Hive
   Future<void> init() async {
     await Hive.initFlutter();
 
-    // Register adapter only once
+    // Register adapters
     if (!Hive.isAdapterRegistered(AuthHiveModelAdapter().typeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
+    if (!Hive.isAdapterRegistered(ItemHiveModelAdapter().typeId)) {
+      Hive.registerAdapter(ItemHiveModelAdapter());
+    }
 
     _authBox = await Hive.openBox<AuthHiveModel>(_authBoxName);
+    _itemBox = await Hive.openBox<ItemHiveModel>(_itemBoxName);
   }
 
   // Register user
@@ -60,5 +68,27 @@ class HiveService {
   Future<AuthHiveModel?> getCurrentUser() async {
     if (_authBox.isEmpty) return null;
     return _authBox.values.first;
+  }
+
+  // ================= Item Box Methods =================
+
+  Future<void> createItem(ItemHiveModel model) async {
+    await _itemBox.put(model.itemId, model);
+  }
+
+  Future<void> updateItem(ItemHiveModel model) async {
+    await _itemBox.put(model.itemId, model);
+  }
+
+  Future<void> deleteItem(String itemId) async {
+    await _itemBox.delete(itemId);
+  }
+
+  Future<ItemHiveModel?> getItemById(String itemId) async {
+    return _itemBox.get(itemId);
+  }
+
+  Future<List<ItemHiveModel>> getAllItems() async {
+    return _itemBox.values.toList();
   }
 }
