@@ -17,7 +17,16 @@ class CreateItemUsecase {
     required String description,
     required String condition,
     required String imagePath,
+    required double price,
+    required String brand,
   }) async {
-    return await _repository.createProduct(name, description, condition, imagePath);
+    return await _repository.createProduct(
+      name,
+      description,
+      condition,
+      imagePath,
+      price,
+      brand,
+    );
   }
 }

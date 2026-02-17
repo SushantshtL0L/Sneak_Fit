@@ -38,6 +38,7 @@ class AuthRemoteDatasource implements IAuthDatasource {
         email: authResponse.email,
         password: '', // We don't store password from remote
         userName: authResponse.username,
+        role: authResponse.role,
       );
     }
     return null;
@@ -53,6 +54,7 @@ class AuthRemoteDatasource implements IAuthDatasource {
         'password': model.password,
         'confirmPassword': model.password, // For now, use the same password
         'username': model.userName,
+        'role': model.role,
       },
     );
 
@@ -111,5 +113,34 @@ class AuthRemoteDatasource implements IAuthDatasource {
       }
     } catch (_) {}
     return null;
+  }
+
+  @override
+  Future<bool> forgotPassword(String email) async {
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.forgotPassword,
+        data: {'email': email},
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> resetPassword(String token, String newPassword) async {
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.resetPassword,
+        data: {
+          'token': token,
+          'newPassword': newPassword,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 }

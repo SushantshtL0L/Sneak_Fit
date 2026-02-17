@@ -31,10 +31,24 @@ class ItemViewModel extends StateNotifier<ItemState> {
     );
   }
 
-  Future<void> createProduct(String name, String description, String condition, String imagePath) async {
+  Future<void> createProduct(
+    String name,
+    String description,
+    String condition,
+    String imagePath,
+    double price,
+    String brand,
+  ) async {
     state = state.copyWith(status: ItemStatus.loading);
     
-    final result = await _repository.createProduct(name, description, condition, imagePath);
+    final result = await _repository.createProduct(
+      name,
+      description,
+      condition,
+      imagePath,
+      price,
+      brand,
+    );
     
     result.fold(
       (error) => state = state.copyWith(

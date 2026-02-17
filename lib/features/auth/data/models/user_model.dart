@@ -9,6 +9,7 @@ class UserModel extends AuthEntity {
     super.password,
     super.profileImage,
     super.token,
+    super.role,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +20,7 @@ class UserModel extends AuthEntity {
       email: json['email'],
       profileImage: json['image'],
       token: json['token'],
+      role: json['role'],
     );
   }
 }

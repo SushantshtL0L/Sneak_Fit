@@ -6,7 +6,7 @@ import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
 import 'package:sneak_fit/screens/all_products_screen.dart';
-import 'package:sneak_fit/screens/product_detail_screen.dart';
+import 'package:sneak_fit/screens/product_detail_screen_new.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -182,11 +182,8 @@ class HomeScreen extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(
-              brand: brand,
-              rating: rating,
-              price: price,
-              image: imageUrl,
+            builder: (_) => ProductDetailScreenNew(
+              item: item,
             ),
           ),
         );

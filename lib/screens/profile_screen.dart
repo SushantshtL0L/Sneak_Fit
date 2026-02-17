@@ -20,25 +20,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Fetch user profile when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = ref.read(authViewModelProvider).authEntity;
-      if (user != null) {
-        _nameController.text = user.name ?? user.userName ?? '';
-      }
+      ref.read(authViewModelProvider.notifier).getUserProfile();
     });
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickImage(ImageSource source, {StateSetter? setDialogState}) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
+      if (mounted) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+        if (setDialogState != null) {
+          setDialogState(() {});
+        }
+      }
     }
   }
 
-  void _showImagePicker(BuildContext context) {
+  void _showImagePicker(BuildContext context, {StateSetter? setDialogState}) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -68,14 +71,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.image,
                     label: "Gallery",
                     color: Colors.blue,
-                    onTap: () => _pickImage(ImageSource.gallery),
+                    onTap: () => _pickImage(ImageSource.gallery, setDialogState: setDialogState),
                   ),
                   _pickerOption(
                     context,
                     icon: Icons.camera_alt,
                     label: "Camera",
                     color: Colors.red,
-                    onTap: () => _pickImage(ImageSource.camera),
+                    onTap: () => _pickImage(ImageSource.camera, setDialogState: setDialogState),
                   ),
                 ],
               ),
@@ -101,7 +104,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              // ignore: deprecated_member_use
+              color: color.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 30, color: color),
@@ -114,80 +118,104 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showEditProfileDialog() {
+    final user = ref.read(authViewModelProvider).authEntity;
+    _nameController.text = user?.name ?? user?.userName ?? '';
+    _image = null; // Reset picked image when opening dialog
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Edit Profile"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[200],
-                  backgroundImage: _image != null ? FileImage(_image!) : null,
-                  child: _image == null
-                      ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                      : null,
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () => _showImagePicker(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Colors.black,
-                        shape: BoxShape.circle,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final currentUser = ref.watch(authViewModelProvider).authEntity;
+            final String? networkImageUrl = currentUser?.profileImage != null
+                ? "${ApiEndpoints.baseImageUrl}${currentUser?.profileImage}"
+                : null;
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text("Edit Profile"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatefulBuilder(
+                    builder: (context, setDialogState) {
+                      return Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.grey[200],
+                            backgroundImage: _image != null
+                                ? FileImage(_image!)
+                                : (networkImageUrl != null
+                                    ? NetworkImage(networkImageUrl)
+                                    : null),
+                            child: (_image == null && networkImageUrl == null)
+                                ? const Icon(Icons.person,
+                                    size: 50, color: Colors.grey)
+                                : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () => _showImagePicker(context, setDialogState: setDialogState),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.camera_alt,
+                                    size: 18, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: "Name",
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
-                      child: const Icon(Icons.camera_alt,
-                          size: 18, color: Colors.white),
                     ),
                   ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    ref.read(authViewModelProvider.notifier).updateProfile(
+                          _nameController.text.trim(),
+                          _image?.path,
+                        );
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Save Changes"),
                 ),
               ],
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: "Name",
-                filled: true,
-                fillColor: Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () {
-              ref.read(authViewModelProvider.notifier).updateProfile(
-                    _nameController.text.trim(),
-                    _image?.path,
-                  );
-              Navigator.pop(context);
-            },
-            child: const Text("Save Changes"),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 

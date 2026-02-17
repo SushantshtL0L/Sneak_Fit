@@ -13,6 +13,9 @@ class ItemEntity extends Equatable {
   final String status; // available, sold, etc.
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String? brand;
+  final String? color;
+  final String? size;
 
   const ItemEntity({
     required this.itemId,
@@ -25,6 +28,9 @@ class ItemEntity extends Equatable {
     this.status = 'available',
     this.createdAt,
     this.updatedAt,
+    this.brand,
+    this.color,
+    this.size,
   });
 
   @override
@@ -37,5 +43,8 @@ class ItemEntity extends Equatable {
         media,
         mediaType,
         status,
+        brand,
+        color,
+        size,
       ];
 }

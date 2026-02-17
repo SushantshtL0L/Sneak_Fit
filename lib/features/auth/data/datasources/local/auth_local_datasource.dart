@@ -52,4 +52,16 @@ class AuthLocalDatasource implements IAuthDatasource {
   Future<UserModel?> updateProfile(String name, String? imagePath) async {
     return null;
   }
+
+  @override
+  Future<bool> forgotPassword(String email) async {
+    // Local datasource doesn't support password reset requests
+    return false;
+  }
+
+  @override
+  Future<bool> resetPassword(String token, String newPassword) async {
+    // Local datasource doesn't support password reset requests
+    return false;
+  }
 }

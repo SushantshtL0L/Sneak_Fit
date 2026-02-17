@@ -38,15 +38,17 @@ class ApiEndpoints {
   static const Duration receiveTimeout = Duration(seconds: 30);
 
   // ============ Auth Endpoints ============
-  static const String auth = '/auth';
-  static const String userLogin = '/auth/login';
-  static const String userRegister = '/auth/register';
+  static const String auth = 'auth';
+  static const String userLogin = 'auth/login';
+  static const String userRegister = 'auth/register';
+  static const String forgotPassword = 'auth/forgot-password';
+  static const String resetPassword = 'auth/reset-password';
 
-  static const String users = '/users';
-  static const String currentUser = '/users/me';
-  static const String updateProfile = '/users/profile';
-  static String userById(String id) => '/users/$id';
-  static String userPhoto(String id) => '/users/$id/photo';
+  static const String users = 'users';
+  static const String currentUser = 'users/me';
+  static const String updateProfile = 'users/profile';
+  static String userById(String id) => 'users/$id';
+  static String userPhoto(String id) => 'users/$id/photo';
 
   // ============ Item Endpoints ============
   // static const String items = '/items';
@@ -60,5 +62,5 @@ class ApiEndpoints {
   // static String commentLike(String id) => '/comments/$id/like';
 
   // ============ Product Endpoints ============
-  static const String products = '/products';
+  static const String products = 'products';
 }

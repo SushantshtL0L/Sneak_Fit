@@ -27,12 +27,21 @@ class ItemRemoteDataSource {
     }
   }
 
-  Future<bool> createProduct(String name, String description, String condition, String imagePath) async {
+  Future<bool> createProduct(
+    String name,
+    String description,
+    String condition,
+    String imagePath,
+    double price,
+    String brand,
+  ) async {
     try {
       final formData = FormData.fromMap({
         'name': name,
         'description': description,
         'condition': condition.toLowerCase(),
+        'price': price.toString(),
+        'brand': brand,
         'image': await MultipartFile.fromFile(
           imagePath,
           filename: imagePath.split('/').last,
@@ -47,6 +56,18 @@ class ItemRemoteDataSource {
       return response.statusCode == 201;
     } catch (e) {
       throw Exception("Error creating product: $e");
+    }
+  }
+
+  Future<ItemApiModel?> getItemById(String id) async {
+    try {
+      final response = await _apiClient.get("${ApiEndpoints.products}/$id");
+      if (response.statusCode == 200) {
+        return ItemApiModel.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      throw Exception("Error fetching product by ID: $e");
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
 import '../../../../core/services/permission_service.dart';
+import '../../../../core/utils/my_snack_bar.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   const AddItemScreen({super.key});
@@ -21,6 +22,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _brandController = TextEditingController();
 
   Future<void> _pickImage() async {
     showModalBottomSheet(
@@ -65,8 +67,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       final granted = await PermissionService.requestCameraPermission();
       if (!granted) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Camera permission denied")),
+          showMySnackBar(
+            context: context,
+            message: "Camera permission denied",
+            type: SnackBarType.error,
           );
         }
         return;
@@ -83,30 +87,53 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   }
 
   Future<void> _uploadProduct() async {
-    if (_image == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select an image")),
+    final name = _nameController.text.trim();
+    final description = _descriptionController.text.trim();
+    final brand = _brandController.text.trim();
+    final priceStr = _priceController.text.trim();
+
+    if (_image == null || name.isEmpty || description.isEmpty || brand.isEmpty || priceStr.isEmpty) {
+      showMySnackBar(
+        context: context,
+        message: "Please fill all fields and select an image",
+        type: SnackBarType.warning,
+      );
+      return;
+    }
+
+    final price = double.tryParse(priceStr);
+    if (price == null) {
+      showMySnackBar(
+        context: context,
+        message: "Please enter a valid price",
+        type: SnackBarType.error,
       );
       return;
     }
 
     await ref.read(itemViewModelProvider.notifier).createProduct(
-      _nameController.text.trim(),
-      _descriptionController.text.trim(),
-      _condition.toLowerCase(),
-      _image!.path,
-    );
+          name,
+          description,
+          _condition.toLowerCase(),
+          _image!.path,
+          price,
+          brand,
+        );
 
     if (mounted) {
       final state = ref.read(itemViewModelProvider);
       if (state.status == ItemStatus.created) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Product posted successfully!")),
+        showMySnackBar(
+          context: context,
+          message: "Product posted successfully!",
+          type: SnackBarType.success,
         );
         Navigator.pop(context);
       } else if (state.status == ItemStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to post: ${state.errorMessage}")),
+        showMySnackBar(
+          context: context,
+          message: "Failed to post: ${state.errorMessage}",
+          type: SnackBarType.error,
         );
       }
     }
@@ -184,6 +211,43 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Brand field
+            const Text("Brand",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _brandController,
+              decoration: InputDecoration(
+                hintText: "e.g. Nike, Adidas, Puma",
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Description field
+            const Text("Description",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: "Tell us more about the sneakers...",
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
             // Condition Selector (Thrift vs New)
             const Text("Condition",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -239,7 +303,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Price (Local storage or display only for now)
+            // Price
             const Text("Price (Rs.)",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 10),
@@ -285,3 +349,4 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     );
   }
 }
+

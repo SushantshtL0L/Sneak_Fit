@@ -6,6 +6,8 @@ import 'package:sneak_fit/core/storage/user_session_service.dart';
 import 'core/services/hive/hive_service.dart';
 import 'features/auth/presentation/pages/login_screen.dart';
 import 'features/auth/presentation/pages/signup_screen.dart';
+import 'features/auth/presentation/pages/forgot_password_screen.dart';
+import 'features/auth/presentation/pages/reset_password_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/splash_screen.dart';
 
@@ -47,10 +49,20 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       initialRoute: '/splash',
+      onGenerateRoute: (settings) {
+        if (settings.name == '/reset-password') {
+          final email = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) => ResetPasswordScreen(email: email),
+          );
+        }
+        return null;
+      },
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/dashboard': (context) => const DashboardScreen(),
       },
     );

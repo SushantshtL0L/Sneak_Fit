@@ -4,7 +4,7 @@ import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
-import 'package:sneak_fit/screens/product_detail_screen.dart';
+import 'package:sneak_fit/screens/product_detail_screen_new.dart';
 
 class AllProductsScreen extends ConsumerWidget {
   const AllProductsScreen({super.key});
@@ -68,11 +68,8 @@ class AllProductsScreen extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(
-              brand: item.itemName,
-              rating: rating,
-              price: "Rs ${item.price.toInt()}",
-              image: imageUrl,
+            builder: (_) => ProductDetailScreenNew(
+              item: item,
             ),
           ),
         );

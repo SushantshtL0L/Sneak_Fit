@@ -14,8 +14,6 @@ class GetItemByIdUsecase {
   GetItemByIdUsecase(this._repository);
 
   Future<Either<Exception, ItemEntity?>> call(String id) async {
-    // Note: IItemRepository needs to be updated if you want to use this
-    // For now, it only has getAllItems and createProduct
-    return Left(Exception("Not implemented in Repository yet"));
+    return await _repository.getItemById(id);
   }
 }
