@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/datasources/local/auth_local_datasource.dart';
-import '../../data/models/auth_hive_model.dart';
+import '../view_model/auth_view_model.dart';
+import '../../domain/usecases/register_usecase.dart';
+import '../state/auth_state.dart';
 import '../widgets/my_button.dart';
 import '../widgets/my_textfield.dart';
 
@@ -16,6 +17,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   late final TextEditingController nameController;
   late final TextEditingController emailController;
   late final TextEditingController passController;
+  late final TextEditingController confirmPassController;
 
   @override
   void initState() {
@@ -23,6 +25,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     nameController = TextEditingController();
     emailController = TextEditingController();
     passController = TextEditingController();
+    confirmPassController = TextEditingController();
   }
 
   @override
@@ -30,6 +33,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     nameController.dispose();
     emailController.dispose();
     passController.dispose();
+    confirmPassController.dispose();
     super.dispose();
   }
 
@@ -37,38 +41,52 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passController.text.trim();
+    final confirmPassword = confirmPassController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
       );
       return;
     }
 
-    final authDatasource = ref.read(authLocalDatasourceProvider);
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
 
-    final success = await authDatasource.register(
-      AuthHiveModel(
-        userName: name,
+    await ref.read(authViewModelProvider.notifier).register(
+      RegisterUsecaseParams(
+        name: name,
+        userName: name, // Using Name as Username for smoothness
         email: email,
         password: password,
+        confirmPassword: confirmPassword,
+        phoneNumber: '',
       ),
     );
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Signup successful!")),
-      );
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Signup failed")),
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
+
+    // Listen for state changes
+    ref.listen(authViewModelProvider, (previous, next) {
+      if (next.status == AuthStatus.registered) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Signup successful!")),
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      } else if (next.status == AuthStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage ?? "Signup failed")),
+        );
+      }
+    });
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -91,10 +109,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               MyTextField(hint: "Email", controller: emailController, prefixIcon: Icons.email),
               const SizedBox(height: 16),
               MyTextField(hint: "Password", controller: passController, isPassword: true, prefixIcon: Icons.lock),
+              const SizedBox(height: 16),
+              MyTextField(hint: "Confirm Password", controller: confirmPassController, isPassword: true, prefixIcon: Icons.lock_outline),
               const SizedBox(height: 30),
               MyButton(
                 text: "Sign Up",
                 color: Colors.green,
+                isLoading: authState.status == AuthStatus.loading,
                 onPressed: _signup,
               ),
               const SizedBox(height: 20),

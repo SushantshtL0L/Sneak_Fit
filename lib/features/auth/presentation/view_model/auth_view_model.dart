@@ -1,57 +1,76 @@
-import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sneak_fit/core/error/failure.dart';
-import 'package:sneak_fit/core/usecase/app_usecase.dart';
-import 'package:sneak_fit/features/auth/data/repositories/auth_repository.dart';
-import 'package:sneak_fit/features/auth/domain/entities/auth_entity.dart';
-import 'package:sneak_fit/features/auth/domain/repositories/auth_repository.dart';
+import 'package:sneak_fit/features/auth/domain/usecases/login_usecase.dart';
+import 'package:sneak_fit/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:sneak_fit/features/auth/domain/usecases/register_usecase.dart';
+import 'package:sneak_fit/features/auth/presentation/state/auth_state.dart';
 
-/// Params for Register Usecase
-class RegisterUsecaseParams extends Equatable {
-  final String userName;
-  final String email;
-  final String password;
-  final String phoneNumber; // added phoneNumber
-  final String? profileImage;
-
-  RegisterUsecaseParams({
-    required this.userName,
-    required this.email,
-    required this.password,
-    required this.phoneNumber,
-    this.profileImage,
-  });
-
-  @override
-  List<Object?> get props => [userName, email, password, phoneNumber, profileImage];
-}
-
-/// Riverpod provider for RegisterUsecase
-final registerUsecaseProvider = Provider<RegisterUsecase>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return RegisterUsecase(authRepository: authRepository);
+final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
+  return AuthViewModel(
+    loginUsecase: ref.read(LoginUsecaseProvider),
+    registerUsecase: ref.read(registerUsecaseProvider),
+    logoutUsecase: ref.read(logoutUsecaseProvider),
+  );
 });
 
-/// Register Usecase implementation
-class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> {
-  final IAuthRepository _authRepository;
+class AuthViewModel extends StateNotifier<AuthState> {
+  final LoginUsecase _loginUsecase;
+  final RegisterUsecase _registerUsecase;
+  final LogoutUsecase _logoutUsecase;
 
-  RegisterUsecase({required IAuthRepository authRepository})
-      : _authRepository = authRepository;
+  AuthViewModel({
+    required LoginUsecase loginUsecase,
+    required RegisterUsecase registerUsecase,
+    required LogoutUsecase logoutUsecase,
+  })  : _loginUsecase = loginUsecase,
+        _registerUsecase = registerUsecase,
+        _logoutUsecase = logoutUsecase,
+        super(AuthState());
 
-  @override
-  Future<Either<Failure, bool>> call(RegisterUsecaseParams params) {
-    // Map params to AuthEntity
-    final authEntity = AuthEntity(
-      userName: params.userName,
-      email: params.email,
-      password: params.password,
-      phoneNumber: params.phoneNumber, // mapped phoneNumber
-      profileImage: params.profileImage,
+  Future<void> logout() async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final result = await _logoutUsecase.call();
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+      (success) => state = AuthState(),
     );
+  }
 
-    // Call repository
-    return _authRepository.register(authEntity);
+  Future<void> login(String email, String password) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final result = await _loginUsecase.call(LoginUsecaseParams(email: email, password: password));
+    
+    result.fold(
+      (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+      (user) => state = state.copyWith(
+        status: AuthStatus.authenticated,
+        authEntity: user,
+      ),
+    );
+  }
+
+  Future<void> register(RegisterUsecaseParams params) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final result = await _registerUsecase.call(params);
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+      (success) => state = state.copyWith(
+        status: AuthStatus.registered,
+      ),
+    );
+  }
+
+  void resetState() {
+    state = AuthState();
   }
 }
