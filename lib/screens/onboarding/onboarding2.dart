@@ -25,12 +25,14 @@ class Onboarding2 extends StatelessWidget {
 
                 const SizedBox(height: 50),
 
-                const Text(
+                Text(
                   "Find your best style with SneakFit",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
+                    fontFamily: 'OpenSans',     
+                    fontWeight: FontWeight.bold, 
                     fontSize: 35,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
               ],
@@ -53,7 +55,12 @@ class Onboarding2 extends StatelessWidget {
               onPressed: onNext,
               child: const Text(
                 "Next",
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(
+                  fontFamily: 'OpenSans',       
+                  fontWeight: FontWeight.w400, 
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
               ),
             ),
           )

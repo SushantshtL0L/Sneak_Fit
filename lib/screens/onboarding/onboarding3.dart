@@ -29,8 +29,10 @@ class Onboarding3 extends StatelessWidget {
                   "Best New and Thrift Shoes",
                   textAlign: TextAlign.center,
                   style: TextStyle(
+                    fontFamily: 'OpenSans',     
+                    fontWeight: FontWeight.bold, 
                     fontSize: 26,
-                    fontWeight: FontWeight.bold,
+                    
                   ),
                 ),
               ],
@@ -53,7 +55,10 @@ class Onboarding3 extends StatelessWidget {
               onPressed: onNext,
               child: const Text(
                 "Get Started",
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(fontSize: 18,
+                fontFamily: 'OpenSans',     
+                    fontWeight: FontWeight.w400, 
+                color: Colors.white),
               ),
             ),
           )

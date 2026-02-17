@@ -39,7 +39,7 @@ class Onboarding1 extends StatelessWidget {
             ),
           ),
 
-          // NEXT BUTTON
+          
           Positioned(
             right: 20,
             bottom: 70,
