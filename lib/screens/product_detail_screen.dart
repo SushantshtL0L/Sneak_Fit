@@ -32,11 +32,19 @@ class ProductDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Image.asset(
-                image,
-                height: 220,
-                fit: BoxFit.contain,
-              ),
+              child: image.startsWith('http')
+                  ? Image.network(
+                      image,
+                      height: 220,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Image.asset("assets/images/shoe.png", height: 220),
+                    )
+                  : Image.asset(
+                      image,
+                      height: 220,
+                      fit: BoxFit.contain,
+                    ),
             ),
             const SizedBox(height: 20),
 

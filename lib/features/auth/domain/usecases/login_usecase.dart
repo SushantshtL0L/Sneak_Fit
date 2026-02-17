@@ -10,14 +10,14 @@ import 'package:sneak_fit/features/auth/domain/repositories/auth_repository.dart
 class LoginUsecaseParams extends Equatable {
   final String email;
   final String password;
-  LoginUsecaseParams({required this.email, required this.password});
+  const LoginUsecaseParams({required this.email, required this.password});
 
   @override
   List<Object?> get props => [email, password];
 }
 
 //provider for login usecase
-final LoginUsecaseProvider = Provider<LoginUsecase>((ref) {
+final loginUsecaseProvider = Provider<LoginUsecase>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return LoginUsecase(authRepository: authRepository);
 });
@@ -26,7 +26,7 @@ class LoginUsecase
     implements UsecaseWithParams<AuthEntity, LoginUsecaseParams> {
   final IAuthRepository _authRepository;
 
-  LoginUsecase({required IAuthRepository authRepository})
+  const LoginUsecase({required IAuthRepository authRepository})
     : _authRepository = authRepository;
 
   @override

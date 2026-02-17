@@ -16,8 +16,9 @@ class RegisterUsecaseParams extends Equatable {
   final String confirmPassword;
   final String phoneNumber;
   final String? profileImage;
+  final String? role;
 
-  RegisterUsecaseParams({
+  const RegisterUsecaseParams({
     required this.name,
     required this.userName,
     required this.email,
@@ -25,11 +26,20 @@ class RegisterUsecaseParams extends Equatable {
     required this.confirmPassword,
     required this.phoneNumber,
     this.profileImage,
+    this.role,
   });
 
   @override
-  List<Object?> get props =>
-      [name, userName, email, password, confirmPassword, phoneNumber, profileImage];
+  List<Object?> get props => [
+        name,
+        userName,
+        email,
+        password,
+        confirmPassword,
+        phoneNumber,
+        profileImage,
+        role,
+      ];
 }
 
 /// Riverpod provider for RegisterUsecase
@@ -42,7 +52,7 @@ final registerUsecaseProvider = Provider<RegisterUsecase>((ref) {
 class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> {
   final IAuthRepository _authRepository;
 
-  RegisterUsecase({required IAuthRepository authRepository})
+  const RegisterUsecase({required IAuthRepository authRepository})
       : _authRepository = authRepository;
 
   @override
@@ -54,6 +64,7 @@ class RegisterUsecase implements UsecaseWithParams<bool, RegisterUsecaseParams> 
       email: params.email,
       password: params.password,
       profileImage: params.profileImage,
+      role: params.role,
     );
 
     // Call repository

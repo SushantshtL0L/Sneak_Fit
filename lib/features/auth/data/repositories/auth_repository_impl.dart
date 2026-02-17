@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sneak_fit/core/api/api_client.dart';
 import 'package:sneak_fit/core/error/failure.dart';
 import 'package:sneak_fit/core/storage/user_session_service.dart';
 import 'package:sneak_fit/features/auth/data/datasources/remote/auth_remote_datasource.dart';
@@ -41,6 +40,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         userId: response.userId,
         email: response.email,
         username: response.userName ?? '',
+        role: response.role,
       );
 
       return Right(
@@ -48,6 +48,7 @@ class AuthRepositoryImpl implements IAuthRepository {
           userId: response.userId,
           email: response.email,
           userName: response.userName,
+          role: response.role,
         ),
       );
     } catch (e) {
@@ -91,6 +92,7 @@ class AuthRepositoryImpl implements IAuthRepository {
           userId: userSession.userId,
           email: userSession.email,
           userName: userSession.username,
+          role: userSession.role,
         ),
       );
     } catch (e) {
@@ -109,6 +111,103 @@ class AuthRepositoryImpl implements IAuthRepository {
       return Left(
         ApiFailure(message: 'Logout failed: ${e.toString()}'),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> updateProfile(
+      String name, String? imagePath) async {
+    try {
+      final userModel = await remote.updateProfile(name, imagePath);
+
+      if (userModel == null) {
+        return const Left(ApiFailure(message: 'Profile update failed'));
+      }
+
+      await sessionService.saveUserSession(
+        userId: userModel.userId ?? '',
+        email: userModel.email,
+        username: userModel.userName ?? '',
+        profilePicture: userModel.profileImage,
+        role: userModel.role,
+      );
+
+      return Right(
+        AuthEntity(
+          userId: userModel.userId,
+          email: userModel.email,
+          userName: userModel.userName,
+          name: userModel.name,
+          profileImage: userModel.profileImage,
+          role: userModel.role,
+        ),
+      );
+    } catch (e) {
+      return Left(
+        ApiFailure(message: 'Profile update failed: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> getUserProfile() async {
+    try {
+      final userModel = await remote.getMe();
+
+      if (userModel == null) {
+        return const Left(ApiFailure(message: 'Failed to fetch user profile'));
+      }
+
+      await sessionService.saveUserSession(
+        userId: userModel.userId ?? '',
+        email: userModel.email,
+        username: userModel.userName ?? '',
+        profilePicture: userModel.profileImage,
+        role: userModel.role,
+      );
+
+      return Right(
+        AuthEntity(
+          userId: userModel.userId,
+          email: userModel.email,
+          userName: userModel.userName,
+          name: userModel.name,
+          profileImage: userModel.profileImage,
+          role: userModel.role,
+        ),
+      );
+    } catch (e) {
+      return Left(
+        ApiFailure(message: 'Failed to fetch user profile: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> forgotPassword(String email) async {
+    try {
+      final success = await remote.forgotPassword(email);
+      if (success) {
+        return const Right(true);
+      } else {
+        return const Left(ApiFailure(message: 'Failed to send reset email'));
+      }
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> resetPassword(String token, String newPassword) async {
+    try {
+      final success = await remote.resetPassword(token, newPassword);
+      if (success) {
+        return const Right(true);
+      } else {
+        return const Left(ApiFailure(message: 'Failed to reset password'));
+      }
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
     }
   }
 }

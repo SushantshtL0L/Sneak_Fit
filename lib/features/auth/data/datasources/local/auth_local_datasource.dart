@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sneak_fit/core/services/hive/hive_service.dart';
 import 'package:sneak_fit/features/auth/data/datasources/remote/auth_datasource.dart';
 import 'package:sneak_fit/features/auth/data/models/auth_hive_model.dart';
-import 'package:sneak_fit/main.dart';
+import 'package:sneak_fit/features/auth/data/models/user_model.dart';
+
 
 
 final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
@@ -40,5 +41,27 @@ class AuthLocalDatasource implements IAuthDatasource {
   @override
   Future<bool> register(AuthHiveModel model) async {
     return _hiveService.registerUser(model);
+  }
+
+  @override
+  Future<UserModel?> getMe() async {
+    return null;
+  }
+
+  @override
+  Future<UserModel?> updateProfile(String name, String? imagePath) async {
+    return null;
+  }
+
+  @override
+  Future<bool> forgotPassword(String email) async {
+    // Local datasource doesn't support password reset requests
+    return false;
+  }
+
+  @override
+  Future<bool> resetPassword(String token, String newPassword) async {
+    // Local datasource doesn't support password reset requests
+    return false;
   }
 }

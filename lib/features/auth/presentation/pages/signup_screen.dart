@@ -5,6 +5,7 @@ import '../../domain/usecases/register_usecase.dart';
 import '../state/auth_state.dart';
 import '../widgets/my_button.dart';
 import '../widgets/my_textfield.dart';
+import '../../../../core/utils/my_snack_bar.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -18,6 +19,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   late final TextEditingController emailController;
   late final TextEditingController passController;
   late final TextEditingController confirmPassController;
+  String _role = 'user'; 
 
   @override
   void initState() {
@@ -44,29 +46,34 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final confirmPassword = confirmPassController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
+      showMySnackBar(
+        context: context,
+        message: "Please fill all fields",
+        type: SnackBarType.warning,
       );
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match")),
+      showMySnackBar(
+        context: context,
+        message: "Passwords do not match",
+        type: SnackBarType.error,
       );
       return;
     }
 
     await ref.read(authViewModelProvider.notifier).register(
-      RegisterUsecaseParams(
-        name: name,
-        userName: name, // Using Name as Username for smoothness
-        email: email,
-        password: password,
-        confirmPassword: confirmPassword,
-        phoneNumber: '',
-      ),
-    );
+          RegisterUsecaseParams(
+            name: name,
+            userName: name, 
+            email: email,
+            password: password,
+            confirmPassword: confirmPassword,
+            phoneNumber: '',
+            role: _role,
+          ),
+        );
   }
 
   @override
@@ -76,13 +83,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     // Listen for state changes
     ref.listen(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.registered) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Signup successful!")),
+        showMySnackBar(
+          context: context,
+          message: "Signup successful!",
+          type: SnackBarType.success,
         );
         Navigator.pushReplacementNamed(context, '/login');
       } else if (next.status == AuthStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage ?? "Signup failed")),
+        showMySnackBar(
+          context: context,
+          message: next.errorMessage ?? "Signup failed",
+          type: SnackBarType.error,
         );
       }
     });
@@ -104,6 +115,39 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 30),
+
+              // Role Selection
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => setState(() => _role = 'user'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _role == 'user' ? Colors.green : Colors.grey[200],
+                        foregroundColor: _role == 'user' ? Colors.white : Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text("Register as Buyer"),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => setState(() => _role = 'seller'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _role == 'seller' ? Colors.green : Colors.grey[200],
+                        foregroundColor: _role == 'seller' ? Colors.white : Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text("Register as Seller"),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
               MyTextField(hint: "Full Name", controller: nameController, prefixIcon: Icons.person),
               const SizedBox(height: 16),
               MyTextField(hint: "Email", controller: emailController, prefixIcon: Icons.email),
@@ -115,7 +159,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               MyButton(
                 text: "Sign Up",
                 color: Colors.green,
-                isLoading: authState.status == AuthStatus.loading,
+                isLoading: authState.isAuthenticating,
                 onPressed: _signup,
               ),
               const SizedBox(height: 20),

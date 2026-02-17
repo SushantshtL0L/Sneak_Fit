@@ -4,6 +4,7 @@ import '../view_model/auth_view_model.dart';
 import '../state/auth_state.dart';
 import '../widgets/my_button.dart';
 import '../widgets/my_textfield.dart';
+import '../../../../core/utils/my_snack_bar.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -35,8 +36,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final password = passController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
+      showMySnackBar(
+        context: context,
+        message: "Please fill all fields",
+        type: SnackBarType.warning,
       );
       return;
     }
@@ -51,13 +54,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Listen for state changes to handle navigation and snackbars
     ref.listen(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Login successful!")),
+        showMySnackBar(
+          context: context,
+          message: "Login successful!",
+          type: SnackBarType.success,
         );
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else if (next.status == AuthStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage ?? "Invalid email or password")),
+        showMySnackBar(
+          context: context,
+          message: next.errorMessage ?? "Invalid email or password",
+          type: SnackBarType.error,
         );
       }
     });
@@ -82,11 +89,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               MyTextField(hint: "Email", controller: emailController, prefixIcon: Icons.email),
               const SizedBox(height: 16),
               MyTextField(hint: "Password", controller: passController, isPassword: true, prefixIcon: Icons.lock),
-              const SizedBox(height: 30),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
+                  child: const Text(
+                    "Forgot Password?",
+                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               MyButton(
                 text: "Login",
                 color: Colors.green,
-                isLoading: authState.status == AuthStatus.loading,
+                isLoading: authState.isAuthenticating,
                 onPressed: _login,
               ),
               const SizedBox(height: 20),

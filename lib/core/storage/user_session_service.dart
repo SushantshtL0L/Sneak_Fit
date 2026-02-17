@@ -20,6 +20,7 @@ class UserSessionService {
   static const String _keyUserEmail = 'user_email';
   static const String _keyUsername = 'user_username';
   static const String _keyProfilePicture = 'user_profile_picture';
+  static const String _keyUserRole = 'user_role';
 
   UserSessionService({required SharedPreferences prefs}) : _prefs = prefs;
 
@@ -30,6 +31,7 @@ class UserSessionService {
     required String email,
     required String username,
     String? profilePicture,
+    String? role,
   }) async {
     await _prefs.setBool(_keyIsLoggedIn, true);
     await _prefs.setString(_keyUserId, userId);
@@ -39,6 +41,9 @@ class UserSessionService {
     if (profilePicture != null) {
       await _prefs.setString(_keyProfilePicture, profilePicture);
     }
+    if (role != null) {
+      await _prefs.setString(_keyUserRole, role);
+    }
   }
 
   //clear user session data
@@ -47,7 +52,7 @@ class UserSessionService {
     await _prefs.remove(_keyUserId);
     await _prefs.remove(_keyUserEmail);
     await _prefs.remove(_keyUsername);
-    // await _prefs.remove(_keyUserRole);
+    await _prefs.remove(_keyUserRole);
     await _prefs.remove(_keyProfilePicture);
   }
 
@@ -67,6 +72,10 @@ class UserSessionService {
     return _prefs.getString(_keyUsername);
   }
 
+  String? getUserRole() {
+    return _prefs.getString(_keyUserRole);
+  }
+
   String? getProfilePicture() {
     return _prefs.getString(_keyProfilePicture);
   }
@@ -81,6 +90,7 @@ class UserSessionService {
       email: getUserEmail() ?? '',
       username: getUsername() ?? '',
       profilePicture: getProfilePicture(),
+      role: getUserRole(),
     );
   }
 }
@@ -90,11 +100,13 @@ class UserSession {
   final String email;
   final String username;
   final String? profilePicture;
+  final String? role;
 
   UserSession({
     required this.userId,
     required this.email,
     required this.username,
     this.profilePicture,
+    this.role,
   });
 }
