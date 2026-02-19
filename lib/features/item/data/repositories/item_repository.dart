@@ -32,6 +32,8 @@ class ItemRepository implements IItemRepository {
     String imagePath,
     double price,
     String brand,
+    String? size,
+    String? color,
   ) async {
     try {
       final result = await _remoteDataSource.createProduct(
@@ -41,6 +43,8 @@ class ItemRepository implements IItemRepository {
         imagePath,
         price,
         brand,
+        size,
+        color,
       );
       return Right(result);
     } catch (e) {
@@ -53,6 +57,16 @@ class ItemRepository implements IItemRepository {
     try {
       final model = await _remoteDataSource.getItemById(id);
       return Right(model?.toEntity());
+    } catch (e) {
+      return Left(Exception(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Exception, bool>> deleteProduct(String id) async {
+    try {
+      final result = await _remoteDataSource.deleteProduct(id);
+      return Right(result);
     } catch (e) {
       return Left(Exception(e.toString()));
     }

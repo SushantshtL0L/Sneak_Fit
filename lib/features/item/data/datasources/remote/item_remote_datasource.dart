@@ -34,6 +34,8 @@ class ItemRemoteDataSource {
     String imagePath,
     double price,
     String brand,
+    String? size,
+    String? color,
   ) async {
     try {
       final formData = FormData.fromMap({
@@ -42,6 +44,8 @@ class ItemRemoteDataSource {
         'condition': condition.toLowerCase(),
         'price': price.toString(),
         'brand': brand,
+        'size': size,
+        'color': color,
         'image': await MultipartFile.fromFile(
           imagePath,
           filename: imagePath.split('/').last,
@@ -68,6 +72,15 @@ class ItemRemoteDataSource {
       return null;
     } catch (e) {
       throw Exception("Error fetching product by ID: $e");
+    }
+  }
+
+  Future<bool> deleteProduct(String id) async {
+    try {
+      final response = await _apiClient.delete("${ApiEndpoints.products}/$id");
+      return response.statusCode == 200;
+    } catch (e) {
+      throw Exception("Error deleting product: $e");
     }
   }
 }
