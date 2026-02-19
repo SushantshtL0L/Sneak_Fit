@@ -47,13 +47,21 @@ class AuthViewModel extends StateNotifier<AuthState> {
         super(AuthState());
 
   Future<void> getUserProfile() async {
-    state = state.copyWith(status: AuthStatus.loading);
+    // Only show loading status if we don't have user data yet
+    if (state.authEntity == null) {
+      state = state.copyWith(status: AuthStatus.loading);
+    }
+    
     final result = await _getUserProfileUsecase.call();
     result.fold(
-      (failure) => state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: failure.message,
-      ),
+      (failure) {
+        if (state.authEntity == null) {
+          state = state.copyWith(
+            status: AuthStatus.error,
+            errorMessage: failure.message,
+          );
+        }
+      },
       (user) => state = state.copyWith(
         status: AuthStatus.authenticated,
         authEntity: user,
