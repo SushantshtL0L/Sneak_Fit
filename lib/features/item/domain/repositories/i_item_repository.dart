@@ -10,6 +10,9 @@ abstract class IItemRepository {
     String imagePath,
     double price,
     String brand,
+    String? size,
+    String? color,
   );
   Future<Either<Exception, ItemEntity?>> getItemById(String id);
+  Future<Either<Exception, bool>> deleteProduct(String id);
 }
