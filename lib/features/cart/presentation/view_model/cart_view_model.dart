@@ -1,30 +1,48 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sneak_fit/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:sneak_fit/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:sneak_fit/features/cart/presentation/state/cart_state.dart';
 
 final cartViewModelProvider =
     StateNotifierProvider<CartViewModel, CartState>((ref) {
-  return CartViewModel();
+  // Watch auth state - this ensures the provider rebuilds when user changes
+  ref.watch(authViewModelProvider);
+  return CartViewModel(ref);
 });
 
 class CartViewModel extends StateNotifier<CartState> {
-  CartViewModel() : super(const CartState()) {
+  final Ref _ref;
+  CartViewModel(this._ref) : super(const CartState()) {
     _loadCart();
   }
 
-  static const String _cartKey = 'cart_items';
+  void reloadCart() {
+    _loadCart();
+  }
+
+  // Get current user ID to create a unique storage key
+  String _getCartKey(String? userId) {
+    if (userId == null) return 'cart_items_guest';
+    return 'cart_items_$userId';
+  }
 
   Future<void> _loadCart() async {
     try {
+      final authState = _ref.read(authViewModelProvider);
+      final userId = authState.authEntity?.userId;
+      
       final prefs = await SharedPreferences.getInstance();
-      final cartJson = prefs.getString(_cartKey);
+      final cartJson = prefs.getString(_getCartKey(userId));
       
       if (cartJson != null) {
         final List<dynamic> decoded = jsonDecode(cartJson);
         final items = decoded.map((item) => _cartItemFromJson(item)).toList();
         state = state.copyWith(cartItems: items);
+      } else {
+        // If no saved cart for this user, ensure state is empty
+        state = state.copyWith(cartItems: []);
       }
     } catch (e) {
       // Silently handle error - cart will remain empty
@@ -33,11 +51,14 @@ class CartViewModel extends StateNotifier<CartState> {
 
   Future<void> _saveCart() async {
     try {
+      final authState = _ref.read(authViewModelProvider);
+      final userId = authState.authEntity?.userId;
+
       final prefs = await SharedPreferences.getInstance();
       final cartJson = jsonEncode(
         state.cartItems.map((item) => _cartItemToJson(item)).toList(),
       );
-      await prefs.setString(_cartKey, cartJson);
+      await prefs.setString(_getCartKey(userId), cartJson);
     } catch (e) {
       // Silently handle error - cart state remains in memory
     }
