@@ -5,6 +5,7 @@ import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
+import 'package:sneak_fit/features/wishlist/presentation/view_model/wishlist_view_model.dart';
 import 'package:sneak_fit/screens/all_products_screen.dart';
 import 'package:sneak_fit/screens/product_detail_screen_new.dart';
 
@@ -36,7 +37,7 @@ class HomeScreen extends ConsumerWidget {
               else if (itemState.items.isEmpty)
                 const Center(child: Text("No products found"))
               else
-                productGrid(context, itemState.items),
+                productGrid(context, itemState.items, ref),
             ],
           ),
         ),
@@ -141,7 +142,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget productGrid(BuildContext context, List<ItemEntity> items) {
+  Widget productGrid(BuildContext context, List<ItemEntity> items, WidgetRef ref) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -160,6 +161,7 @@ class HomeScreen extends ConsumerWidget {
           rating: "4.5", // Default rating
           price: "Rs ${item.price.toInt()}",
           item: item,
+          ref: ref,
         );
       },
     );
@@ -171,6 +173,7 @@ class HomeScreen extends ConsumerWidget {
     required String rating,
     required String price,
     required ItemEntity item,
+    required WidgetRef ref,
   }) {
     // Resolve image URL
     final String imageUrl = item.media != null 
@@ -198,15 +201,36 @@ class HomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Center(
-                child: imageUrl.startsWith('http')
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) => const CircularProgressIndicator(),
-                        errorWidget: (context, url, error) => Image.asset("assets/images/shoe.png"),
-                      )
-                    : Image.asset("assets/images/shoe.png"),
+              child: Stack(
+                children: [
+                  Center(
+                    child: imageUrl.startsWith('http')
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.contain,
+                            placeholder: (context, url) => const CircularProgressIndicator(),
+                            errorWidget: (context, url, error) => Image.asset("assets/images/shoe.png"),
+                          )
+                        : Image.asset("assets/images/shoe.png"),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final isInWishlist = ref.watch(wishlistViewModelProvider).items.any((i) => i.itemId == item.itemId);
+                        return GestureDetector(
+                          onTap: () => ref.read(wishlistViewModelProvider.notifier).toggleWishlist(item),
+                          child: Icon(
+                            isInWishlist ? Icons.favorite : Icons.favorite_border,
+                            color: isInWishlist ? Colors.red : Colors.grey,
+                            size: 22,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),

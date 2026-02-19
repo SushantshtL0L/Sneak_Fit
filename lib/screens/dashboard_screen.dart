@@ -4,8 +4,9 @@ import 'package:sneak_fit/core/storage/user_session_service.dart';
 
 import 'home_screen.dart';
 import 'cart_screen.dart';
-import 'orders_screen.dart';
 import 'profile_screen.dart';
+import 'thrifts_screen.dart';
+import 'wishlist_screen.dart';
 import '../features/auth/presentation/view_model/auth_view_model.dart';
 import '../features/item/presentation/pages/add_item_screen.dart';
 
@@ -22,8 +23,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   final List<Widget> _pages = const [
     HomeScreen(),
+    ThriftsScreen(),
+    WishlistScreen(), // New Middle Page
     CartScreen(),
-    OrdersScreen(),
     ProfileScreen(),
   ];
 
@@ -58,20 +60,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         elevation: 4,
       ),
       body: _pages[_currentIndex],
-      floatingActionButton: showFab
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AddItemScreen(),
-                  ),
-                );
-              },
-              backgroundColor: Colors.black,
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (showFab) {
+            // Admin/Seller adds product
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddItemScreen()),
+            );
+          } else {
+            // Buyer goes to Wishlist
+            setState(() {
+              _currentIndex = 2; // Index of WishlistScreen
+            });
+          }
+        },
+        backgroundColor: Colors.black,
+        child: Icon(
+          showFab ? Icons.add : Icons.favorite,
+          color: Colors.white,
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         elevation: 12,
@@ -82,11 +91,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _navItem(Icons.home, 'Home', 0),
-              _navItem(Icons.shopping_cart, 'Cart', 1),
-              const SizedBox(width: 48), 
-              _navItem(Icons.receipt_long, 'Orders', 2),
-              _navItem(Icons.person, 'Profile', 3),
+              _navItem(Icons.home_outlined, 'Home', 0),
+              _navItem(Icons.eco_outlined, 'Thrifts', 1),
+              const SizedBox(width: 48), // Gap for FAB
+              _navItem(Icons.shopping_cart_outlined, 'Cart', 3),
+              _navItem(Icons.person_outline, 'Profile', 4),
             ],
           ),
         ),
