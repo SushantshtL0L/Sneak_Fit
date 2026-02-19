@@ -38,6 +38,8 @@ class ItemViewModel extends StateNotifier<ItemState> {
     String imagePath,
     double price,
     String brand,
+    String? size,
+    String? color,
   ) async {
     state = state.copyWith(status: ItemStatus.loading);
     
@@ -48,6 +50,8 @@ class ItemViewModel extends StateNotifier<ItemState> {
       imagePath,
       price,
       brand,
+      size,
+      color,
     );
     
     result.fold(
@@ -58,6 +62,23 @@ class ItemViewModel extends StateNotifier<ItemState> {
       (success) {
         state = state.copyWith(status: ItemStatus.created);
         getAllItems(); // Refresh the list after creation
+      },
+    );
+  }
+
+  Future<void> deleteProduct(String id) async {
+    state = state.copyWith(status: ItemStatus.loading);
+    
+    final result = await _repository.deleteProduct(id);
+    
+    result.fold(
+      (error) => state = state.copyWith(
+        status: ItemStatus.error,
+        errorMessage: error.toString(),
+      ),
+      (success) {
+        
+        getAllItems();
       },
     );
   }

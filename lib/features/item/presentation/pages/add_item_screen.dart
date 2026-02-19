@@ -23,6 +23,8 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
+  final TextEditingController _sizeController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
 
   Future<void> _pickImage() async {
     showModalBottomSheet(
@@ -118,6 +120,8 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
           _image!.path,
           price,
           brand,
+          _sizeController.text.trim(),
+          _colorController.text.trim(),
         );
 
     if (mounted) {
@@ -226,6 +230,57 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   borderSide: BorderSide.none,
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Size",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _sizeController,
+                        decoration: InputDecoration(
+                          hintText: "e.g. 42",
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Color",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _colorController,
+                        decoration: InputDecoration(
+                          hintText: "e.g. Black",
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
 
