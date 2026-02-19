@@ -92,7 +92,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 40),
               MyButton(
-                text: "Send Reset Link",
+                text: "Send Code",
                 color: Colors.green,
                 isLoading: authState.isAuthenticating,
                 onPressed: _sendResetLink,

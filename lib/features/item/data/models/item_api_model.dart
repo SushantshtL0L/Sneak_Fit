@@ -8,6 +8,9 @@ class ItemApiModel extends Equatable {
   final double? price;
   final String? description;
   final String? image; // Matches backend 'image'
+  final String? brand;
+  final String? size;
+  final String? color;
   final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -19,6 +22,9 @@ class ItemApiModel extends Equatable {
     this.price,
     this.description,
     this.image,
+    this.brand,
+    this.size,
+    this.color,
     this.status = 'available',
     this.createdAt,
     this.updatedAt,
@@ -33,6 +39,9 @@ class ItemApiModel extends Equatable {
       price: json['price'] != null ? (json['price'] as num).toDouble() : 0.0,
       description: json['description'] as String?,
       image: json['image'] as String?,
+      brand: json['brand'] as String?,
+      size: json['size'] as String?,
+      color: json['color'] as String?,
       status: json['status'] as String? ?? 'available',
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
@@ -51,6 +60,9 @@ class ItemApiModel extends Equatable {
       'price': price,
       'description': description,
       'image': image,
+      'brand': brand,
+      'size': size,
+      'color': color,
       'status': status,
     };
   }
@@ -66,6 +78,9 @@ class ItemApiModel extends Equatable {
       media: image,
       mediaType: 'image',
       status: status,
+      brand: brand,
+      size: size,
+      color: color,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -79,6 +94,9 @@ class ItemApiModel extends Equatable {
         price,
         description,
         image,
+        brand,
+        size,
+        color,
         status,
         createdAt,
         updatedAt,

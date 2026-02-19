@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/features/auth/presentation/state/auth_state.dart';
 import 'package:sneak_fit/features/auth/presentation/view_model/auth_view_model.dart';
+import 'package:sneak_fit/features/item/presentation/pages/my_items_page.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -226,7 +227,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: authState.status == AuthStatus.loading
+      body: authState.status == AuthStatus.loading && user == null
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
@@ -248,13 +249,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(height: 12),
                       _menuItem(Icons.shopping_bag_outlined, 'My Orders',
                           Colors.blue),
-                      _menuItem(Icons.favorite_border, 'Wishlist', Colors.pink),
                       _menuItem(Icons.location_on_outlined, 'Shipping Address',
                           Colors.orange),
                       _menuItem(Icons.payment_outlined, 'Payment Methods',
                           Colors.green),
                       _menuItem(Icons.notifications_none, 'Notifications',
                           Colors.purple),
+                      if (user?.role?.toLowerCase() == 'admin' || user?.role?.toLowerCase() == 'seller')
+                        _menuItem(
+                          Icons.inventory_2_outlined,
+                          'My Products',
+                          Colors.teal,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const MyItemsPage()),
+                            );
+                          },
+                        ),
                       const SizedBox(height: 24),
                       _logoutButton(context, ref),
                       const SizedBox(height: 40),
@@ -408,7 +420,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _menuItem(IconData icon, String title, Color color) {
+  Widget _menuItem(IconData icon, String title, Color color, {VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -434,7 +446,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         title: Text(title,
             style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-        onTap: () {},
+        onTap: onTap ?? () {},
       ),
     );
   }
