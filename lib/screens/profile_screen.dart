@@ -5,7 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/features/auth/presentation/state/auth_state.dart';
 import 'package:sneak_fit/features/auth/presentation/view_model/auth_view_model.dart';
-import 'package:sneak_fit/features/item/presentation/pages/my_items_page.dart';
+import 'package:sneak_fit/features/notification/presentation/pages/notification_screen.dart';
+import 'package:sneak_fit/features/sensors/presentation/pages/sensor_lab_screen.dart';
+import 'package:sneak_fit/screens/orders_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -220,6 +222,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
@@ -239,35 +242,57 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 8),
-                      _statsRow(),
-                      const SizedBox(height: 24),
+                      _statsRow(user),
+                      const SizedBox(height: 32),
+                      
+
                       const Text(
                         "Account Settings",
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
-                      _menuItem(Icons.shopping_bag_outlined, 'My Orders',
-                          Colors.blue),
+                      _menuItem(
+                        Icons.shopping_bag_outlined,
+                        'My Orders',
+                        Colors.blue,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const OrdersScreen()),
+                          );
+                        },
+                      ),
                       _menuItem(Icons.location_on_outlined, 'Shipping Address',
                           Colors.orange),
                       _menuItem(Icons.payment_outlined, 'Payment Methods',
                           Colors.green),
                       _menuItem(Icons.notifications_none, 'Notifications',
-                          Colors.purple),
-                      if (user?.role?.toLowerCase() == 'admin' || user?.role?.toLowerCase() == 'seller')
-                        _menuItem(
-                          Icons.inventory_2_outlined,
-                          'My Products',
-                          Colors.teal,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const MyItemsPage()),
-                            );
-                          },
-                        ),
-                      const SizedBox(height: 24),
+                          Colors.purple, onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                        );
+                      }),
+                      
+                      const SizedBox(height: 12),
+                      const Text(
+                        "Features",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      _menuItem(
+                        Icons.sensors_outlined,
+                        'Sensor Lab',
+                        Colors.deepPurple,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SensorLabScreen()),
+                          );
+                        },
+                      ),
                       _logoutButton(context, ref),
                       const SizedBox(height: 40),
                     ]),
@@ -372,7 +397,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _statsRow() {
+  Widget _statsRow(dynamic user) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
@@ -407,12 +432,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _statItem(String title, String value) {
+  Widget _statItem(String title, String value, {Color? color}) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20, 
+            fontWeight: FontWeight.bold,
+            color: color ?? Colors.black,
+          ),
         ),
         const SizedBox(height: 4),
         Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 13)),

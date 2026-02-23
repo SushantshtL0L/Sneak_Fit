@@ -271,12 +271,7 @@ class CartScreen extends ConsumerWidget {
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Checkout coming soon!'),
-                                  ),
-                                );
+                                Navigator.pushNamed(context, '/checkout');
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF23D19D),
