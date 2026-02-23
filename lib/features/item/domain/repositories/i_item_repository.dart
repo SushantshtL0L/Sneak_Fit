@@ -13,6 +13,17 @@ abstract class IItemRepository {
     String? size,
     String? color,
   );
+  Future<Either<Exception, bool>> updateProduct(
+    String id,
+    String name,
+    String description,
+    String condition,
+    String? imagePath,
+    double price,
+    String brand,
+    String? size,
+    String? color,
+  );
   Future<Either<Exception, ItemEntity?>> getItemById(String id);
   Future<Either<Exception, bool>> deleteProduct(String id);
 }
