@@ -4,11 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
+import 'package:sneak_fit/core/api/api_endpoints.dart';
+import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import '../../../../core/services/permission_service.dart';
 import '../../../../core/utils/my_snack_bar.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
-  const AddItemScreen({super.key});
+  final ItemEntity? item;
+  const AddItemScreen({super.key, this.item});
 
   @override
   ConsumerState<AddItemScreen> createState() => _AddItemScreenState();
@@ -19,12 +22,38 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final _picker = ImagePicker();
   String _condition = 'New';
 
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _brandController = TextEditingController();
-  final TextEditingController _sizeController = TextEditingController();
-  final TextEditingController _colorController = TextEditingController();
+  late final TextEditingController _nameController;
+  late final TextEditingController _priceController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _brandController;
+  late final TextEditingController _sizeController;
+  late final TextEditingController _colorController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.item?.itemName ?? '');
+    _priceController = TextEditingController(text: widget.item?.price.toString() ?? '');
+    _descriptionController = TextEditingController(text: widget.item?.description ?? '');
+    _brandController = TextEditingController(text: widget.item?.brand ?? '');
+    _sizeController = TextEditingController(text: widget.item?.size ?? '');
+    _colorController = TextEditingController(text: widget.item?.color ?? '');
+    
+    if (widget.item != null) {
+      _condition = widget.item!.condition == ItemCondition.newCondition ? 'New' : 'Thrift';
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _priceController.dispose();
+    _descriptionController.dispose();
+    _brandController.dispose();
+    _sizeController.dispose();
+    _colorController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     showModalBottomSheet(
@@ -88,13 +117,13 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     }
   }
 
-  Future<void> _uploadProduct() async {
+  Future<void> _saveProduct() async {
     final name = _nameController.text.trim();
     final description = _descriptionController.text.trim();
     final brand = _brandController.text.trim();
     final priceStr = _priceController.text.trim();
 
-    if (_image == null || name.isEmpty || description.isEmpty || brand.isEmpty || priceStr.isEmpty) {
+    if ((_image == null && widget.item?.media == null) || name.isEmpty || description.isEmpty || brand.isEmpty || priceStr.isEmpty) {
       showMySnackBar(
         context: context,
         message: "Please fill all fields and select an image",
@@ -113,30 +142,46 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       return;
     }
 
-    await ref.read(itemViewModelProvider.notifier).createProduct(
-          name,
-          description,
-          _condition.toLowerCase(),
-          _image!.path,
-          price,
-          brand,
-          _sizeController.text.trim(),
-          _colorController.text.trim(),
-        );
+    if (widget.item != null) {
+      // Edit mode
+      await ref.read(itemViewModelProvider.notifier).updateProduct(
+            widget.item!.itemId,
+            name,
+            description,
+            _condition.toLowerCase(),
+            _image?.path ?? widget.item?.media,
+            price,
+            brand,
+            _sizeController.text.trim(),
+            _colorController.text.trim(),
+          );
+    } else {
+      // Add mode
+      await ref.read(itemViewModelProvider.notifier).createProduct(
+            name,
+            description,
+            _condition.toLowerCase(),
+            _image!.path,
+            price,
+            brand,
+            _sizeController.text.trim(),
+            _colorController.text.trim(),
+          );
+    }
 
     if (mounted) {
       final state = ref.read(itemViewModelProvider);
-      if (state.status == ItemStatus.created) {
+      if (state.status == ItemStatus.created || state.status == ItemStatus.updated) {
         showMySnackBar(
           context: context,
-          message: "Product posted successfully!",
+          message: widget.item != null ? "Product updated successfully!" : "Product posted successfully!",
           type: SnackBarType.success,
         );
         Navigator.pop(context);
       } else if (state.status == ItemStatus.error) {
         showMySnackBar(
           context: context,
-          message: "Failed to post: ${state.errorMessage}",
+          message: "Failed: ${state.errorMessage}",
           type: SnackBarType.error,
         );
       }
@@ -151,9 +196,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          "Sell Your Sneaks",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          widget.item != null ? "Edit Sneaks" : "Sell Your Sneaks",
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -182,16 +227,24 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                           borderRadius: BorderRadius.circular(18),
                           child: Image.file(_image!, fit: BoxFit.cover),
                         )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_a_photo_outlined,
-                                size: 50, color: Colors.grey[400]),
-                            const SizedBox(height: 10),
-                            Text("Add Product Image",
-                                style: TextStyle(color: Colors.grey[600])),
-                          ],
-                        ),
+                      : (widget.item?.media != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: Image.network(
+                                "${ApiEndpoints.baseImageUrl}${widget.item!.media}",
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_a_photo_outlined,
+                                    size: 50, color: Colors.grey[400]),
+                                const SizedBox(height: 10),
+                                Text(widget.item != null ? "Change Image" : "Add Product Image",
+                                    style: TextStyle(color: Colors.grey[600])),
+                              ],
+                            )),
                 ),
               ),
             ),
@@ -382,7 +435,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: isLoading ? null : _uploadProduct,
+                onPressed: isLoading ? null : _saveProduct,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
@@ -392,9 +445,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        "Post Listing",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    : Text(
+                        widget.item != null ? "Update Listing" : "Post Listing",
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
               ),
             ),
