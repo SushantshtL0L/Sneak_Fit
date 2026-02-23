@@ -10,16 +10,30 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const OnboardingMain()),
-      );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _timer = Timer(const Duration(seconds: 2), () {
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const OnboardingMain(),
+          ),
+        );
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); 
+    super.dispose();
   }
 
   @override

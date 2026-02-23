@@ -5,6 +5,9 @@ import 'package:sneak_fit/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:sneak_fit/features/cart/presentation/view_model/cart_view_model.dart';
 import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/core/utils/my_snack_bar.dart';
+import 'package:sneak_fit/features/review/presentation/view_model/review_view_model.dart';
+import 'package:sneak_fit/features/review/domain/entities/review_entity.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class ProductDetailScreenNew extends ConsumerStatefulWidget {
   final ItemEntity item;
@@ -50,6 +53,11 @@ class _ProductDetailScreenNewState
         selectedColor = widget.item.color;
       }
     }
+    
+    // Fetch product reviews
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(reviewViewModelProvider.notifier).fetchProductReviews(widget.item.itemId);
+    });
   }
 
   void _addToCart() {
@@ -421,10 +429,131 @@ class _ProductDetailScreenNewState
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
+            _buildReviewSection(),
+            const SizedBox(height: 40),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildReviewSection() {
+    final state = ref.watch(reviewViewModelProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Product Reviews',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (state.reviews.isNotEmpty)
+              Text(
+                '${state.reviews.length} reviews',
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (state.isLoading)
+          const Center(child: CircularProgressIndicator(color: Color(0xFF23D19D)))
+        else if (state.reviews.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Column(
+              children: [
+                Icon(Icons.rate_review_outlined, size: 40, color: Colors.grey),
+                SizedBox(height: 12),
+                Text(
+                  'No reviews yet for this product.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: state.reviews.length,
+            separatorBuilder: (context, index) => const Divider(height: 32),
+            itemBuilder: (context, index) {
+              final review = state.reviews[index];
+              return _buildReviewTile(review);
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildReviewTile(ReviewEntity review) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: Colors.grey[200],
+              backgroundImage: review.userImage != null && review.userImage!.isNotEmpty
+                  ? NetworkImage('${ApiEndpoints.baseImageUrl}${review.userImage}')
+                  : null,
+              child: review.userImage == null || review.userImage!.isEmpty
+                  ? const Icon(Icons.person, size: 20, color: Colors.grey)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    review.userName,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Row(
+                        children: List.generate(5, (starIndex) {
+                          return Icon(
+                            starIndex < review.rating ? Icons.star : Icons.star_border,
+                            color: Colors.amber,
+                            size: 14,
+                          );
+                        }),
+                      ),
+                      const SizedBox(width: 8),
+                      if (review.createdAt != null)
+                        Text(
+                          timeago.format(review.createdAt!),
+                          style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          review.comment,
+          style: const TextStyle(fontSize: 14, height: 1.4, color: Colors.black87),
+        ),
+      ],
     );
   }
 }

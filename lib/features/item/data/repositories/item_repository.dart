@@ -53,6 +53,36 @@ class ItemRepository implements IItemRepository {
   }
 
   @override
+  Future<Either<Exception, bool>> updateProduct(
+    String id,
+    String name,
+    String description,
+    String condition,
+    String? imagePath,
+    double price,
+    String brand,
+    String? size,
+    String? color,
+  ) async {
+    try {
+      final result = await _remoteDataSource.updateProduct(
+        id,
+        name,
+        description,
+        condition,
+        imagePath,
+        price,
+        brand,
+        size,
+        color,
+      );
+      return Right(result);
+    } catch (e) {
+      return Left(Exception(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Exception, ItemEntity?>> getItemById(String id) async {
     try {
       final model = await _remoteDataSource.getItemById(id);

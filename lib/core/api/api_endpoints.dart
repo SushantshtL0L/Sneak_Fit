@@ -63,4 +63,16 @@ class ApiEndpoints {
 
   // ============ Product Endpoints ============
   static const String products = 'products';
+
+  // ============ Order Endpoints ============
+  static const String orders = 'orders';
+  static const String getUserOrders = 'orders/my-orders';
+  static String cancelOrder(String id) => 'orders/cancel/$id';
+
+  // ============ Review Endpoints ============
+  static const String reviews = 'reviews';
+  static String productReviews(String productId) => 'reviews/product/$productId';
+
+  // ============ Notification Endpoints ============
+  static const String notifications = 'notifications';
 }

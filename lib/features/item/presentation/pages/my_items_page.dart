@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/core/utils/my_snack_bar.dart';
+import 'package:sneak_fit/features/item/presentation/pages/add_item_screen.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
 
@@ -144,10 +145,26 @@ class _MyItemsPageState extends ConsumerState<MyItemsPage> {
                                 ],
                               ),
                             ),
-                            // Delete Button
-                            IconButton(
-                              onPressed: () => _confirmDelete(item.itemId, item.itemName),
-                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            // Action Buttons
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AddItemScreen(item: item),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.edit_outlined, color: Colors.blueAccent),
+                                ),
+                                IconButton(
+                                  onPressed: () => _confirmDelete(item.itemId, item.itemName),
+                                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                ),
+                              ],
                             ),
                           ],
                         ),

@@ -63,6 +63,48 @@ class ItemRemoteDataSource {
     }
   }
 
+  Future<bool> updateProduct(
+    String id,
+    String name,
+    String description,
+    String condition,
+    String? imagePath,
+    double price,
+    String brand,
+    String? size,
+    String? color,
+  ) async {
+    try {
+      final Map<String, dynamic> data = {
+        'name': name,
+        'description': description,
+        'condition': condition.toLowerCase(),
+        'price': price.toString(),
+        'brand': brand,
+        'size': size,
+        'color': color,
+      };
+
+      if (imagePath != null && !imagePath.startsWith('http') && !imagePath.startsWith('/item_photos')) {
+        data['image'] = await MultipartFile.fromFile(
+          imagePath,
+          filename: imagePath.split('/').last,
+        );
+      }
+
+      final formData = FormData.fromMap(data);
+
+      final response = await _apiClient.put(
+        "${ApiEndpoints.products}/$id",
+        data: formData,
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      throw Exception("Error updating product: $e");
+    }
+  }
+
   Future<ItemApiModel?> getItemById(String id) async {
     try {
       final response = await _apiClient.get("${ApiEndpoints.products}/$id");

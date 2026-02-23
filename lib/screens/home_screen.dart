@@ -19,27 +19,35 @@ class HomeScreen extends ConsumerWidget {
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: () => ref.read(itemViewModelProvider.notifier).getAllItems(),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              searchBar(),
-              const SizedBox(height: 20),
-              promoBanner(),
-              const SizedBox(height: 24),
-              sectionHeader(context),
-              const SizedBox(height: 12),
-              if (itemState.status == ItemStatus.loading && itemState.items.isEmpty)
-                const Center(child: CircularProgressIndicator())
-              else if (itemState.status == ItemStatus.error)
-                Center(child: Text("Error: ${itemState.errorMessage}"))
-              else if (itemState.items.isEmpty)
-                const Center(child: Text("No products found"))
-              else
-                productGrid(context, itemState.items, ref),
-            ],
-          ),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  searchBar(),
+                  const SizedBox(height: 20),
+                  promoBanner(),
+                  const SizedBox(height: 24),
+                  sectionHeader(context),
+                  const SizedBox(height: 12),
+                ]),
+              ),
+            ),
+            if (itemState.status == ItemStatus.loading && itemState.items.isEmpty)
+              const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+            else if (itemState.status == ItemStatus.error)
+              SliverFillRemaining(child: Center(child: Text("Error: ${itemState.errorMessage}")))
+            else if (itemState.items.isEmpty)
+              const SliverFillRemaining(child: Center(child: Text("No products found")))
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: productGrid(context, itemState.items, ref),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
         ),
       ),
     );
@@ -143,27 +151,27 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget productGrid(BuildContext context, List<ItemEntity> items, WidgetRef ref) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
+    return SliverGrid(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final item = items[index];
+          return productCard(
+            context: context,
+            brand: item.itemName,
+            rating: "4.5",
+            price: "Rs ${item.price.toInt()}",
+            item: item,
+            ref: ref,
+          );
+        },
+        childCount: items.length,
+      ),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
         childAspectRatio: 0.65,
       ),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return productCard(
-          context: context,
-          brand: item.itemName,
-          rating: "4.5", // Default rating
-          price: "Rs ${item.price.toInt()}",
-          item: item,
-          ref: ref,
-        );
-      },
     );
   }
 

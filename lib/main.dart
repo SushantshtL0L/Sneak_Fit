@@ -10,9 +10,11 @@ import 'features/auth/presentation/pages/forgot_password_screen.dart';
 import 'features/auth/presentation/pages/reset_password_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/checkout_screen.dart';
+import 'screens/order_success_screen.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart'; 
+import 'package:sneak_fit/features/sensors/presentation/view_model/sensor_view_model.dart';
 
-// Providers for HiveService, SharedPreferences, and UserSessionService 
-// are imported from their respective files.
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,12 +42,21 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeState = ref.watch(themeViewModelProvider);
+    // Initialize sensors without rebuilding the entire app on every update
+    ref.listen(sensorViewModelProvider, (previous, next) {});
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SneakFit',
       theme: ThemeData(
+        brightness: themeState.isDarkMode ? Brightness.dark : Brightness.light,
         primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: themeState.isDarkMode ? Colors.black : Colors.white,
+        appBarTheme: AppBarTheme(
+          backgroundColor: themeState.isDarkMode ? Colors.black : Colors.white,
+          foregroundColor: themeState.isDarkMode ? Colors.white : Colors.black,
+        ),
         useMaterial3: true,
       ),
       initialRoute: '/splash',
@@ -64,6 +75,8 @@ class MyApp extends ConsumerWidget {
         '/signup': (context) => const SignupScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/dashboard': (context) => const DashboardScreen(),
+        '/checkout': (context) => const CheckoutScreen(),
+        '/order-success': (context) => const OrderSuccessScreen(),
       },
     );
   }
