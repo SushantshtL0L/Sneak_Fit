@@ -43,6 +43,7 @@ class ApiEndpoints {
   static const String userRegister = 'auth/register';
   static const String forgotPassword = 'auth/forgot-password';
   static const String resetPassword = 'auth/reset-password';
+  static const String changePassword = 'auth/change-password';
 
   static const String users = 'users';
   static const String currentUser = 'users/me';
@@ -75,4 +76,7 @@ class ApiEndpoints {
 
   // ============ Notification Endpoints ============
   static const String notifications = 'notifications';
+
+  // ============ Analytics Endpoints ============
+  static const String shopStats = 'orders/stats';
 }
