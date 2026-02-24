@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
+import 'package:sneak_fit/core/services/biometric_service.dart';
 import 'package:sneak_fit/features/auth/presentation/state/auth_state.dart';
 import 'package:sneak_fit/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:sneak_fit/features/notification/presentation/pages/notification_screen.dart';
@@ -18,7 +19,12 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _oldPasswordController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  
   File? _image;
+  bool _biometricEnabled = false;
 
   @override
   void initState() {
@@ -27,7 +33,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(authViewModelProvider.notifier).getUserProfile();
     });
+    _loadBiometricPreference();
   }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _oldPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadBiometricPreference() async {
+    final enabled = await ref.read(biometricServiceProvider).isBiometricLoginEnabled();
+    if (mounted) setState(() => _biometricEnabled = enabled);
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    final service = ref.read(biometricServiceProvider);
+    final isAvailable = await service.isAvailable();
+
+    if (!isAvailable) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Biometric authentication is not available on this device.')),
+      );
+      return;
+    }
+
+    if (value) {
+      // Verify identity before enabling
+      final authenticated = await service.authenticate(
+        reason: 'Confirm your biometric to enable fingerprint login',
+      );
+      if (!authenticated) return;
+    }
+
+    await service.setBiometricLoginEnabled(value);
+    if (mounted) setState(() => _biometricEnabled = value);
+  }
+
 
   Future<void> _pickImage(ImageSource source, {StateSetter? setDialogState}) async {
     final picker = ImagePicker();
@@ -107,8 +153,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              // ignore: deprecated_member_use
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 30, color: color),
@@ -222,6 +267,117 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  void _showChangePasswordDialog() {
+    _oldPasswordController.clear();
+    _newPasswordController.clear();
+    _confirmPasswordController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text("Change Password", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _passwordField(_oldPasswordController, "Current Password"),
+                const SizedBox(height: 16),
+                _passwordField(_newPasswordController, "New Password"),
+                const SizedBox(height: 16),
+                _passwordField(_confirmPasswordController, "Confirm New Password"),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              onPressed: () async {
+                final oldPass = _oldPasswordController.text;
+                final newPass = _newPasswordController.text;
+                final confirmPass = _confirmPasswordController.text;
+
+                if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
+                   ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("All fields are required")),
+                  );
+                  return;
+                }
+
+                if (newPass != confirmPass) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("New passwords do not match")),
+                  );
+                  return;
+                }
+
+                if (newPass.length < 6) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Password must be at least 6 characters")),
+                  );
+                  return;
+                }
+
+                final success = await ref.read(authViewModelProvider.notifier).changePassword(
+                  oldPass,
+                  newPass,
+                );
+
+                if (context.mounted) {
+                  if (success) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Password changed successfully!"),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    final error = ref.read(authViewModelProvider).errorMessage;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(error ?? "Failed to change password"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text("Change Password"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _passwordField(TextEditingController controller, String label) {
+    return TextField(
+      controller: controller,
+      obscureText: true,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.grey[100],
+        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -242,10 +398,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 8),
-                      _statsRow(user),
-                      const SizedBox(height: 32),
-                      
-
                       const Text(
                         "Account Settings",
                         style: TextStyle(
@@ -275,9 +427,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
                       }),
                       
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 24),
                       const Text(
-                        "Features",
+                        "Security",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      _menuItem(Icons.lock_outline_rounded, 'Change Password',
+                          Colors.redAccent, onTap: _showChangePasswordDialog),
+                      _biometricTile(),
+                      _menuItem(Icons.delete_outline_rounded, 'Delete Account',
+                          Colors.red, onTap: () {
+                             ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Request to delete account sent. Please contact support.")),
+                            );
+                          }),
+
+                      const SizedBox(height: 24),
+                      const Text(
+                        "App Features",
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
@@ -397,58 +566,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _statsRow(dynamic user) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _statItem('Orders', '12'),
-          _verticalDivider(),
-          _statItem('Wishlist', '6'),
-          _verticalDivider(),
-          _statItem('Reviews', '4'),
-        ],
-      ),
-    );
-  }
-
-  Widget _verticalDivider() {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.grey[200],
-    );
-  }
-
-  Widget _statItem(String title, String value, {Color? color}) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20, 
-            fontWeight: FontWeight.bold,
-            color: color ?? Colors.black,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-      ],
-    );
-  }
-
   Widget _menuItem(IconData icon, String title, Color color, {VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -476,6 +593,51 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
         onTap: onTap ?? () {},
+      ),
+    );
+  }
+
+  Widget _biometricTile() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (_biometricEnabled ? Colors.green : Colors.grey).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.fingerprint,
+            color: _biometricEnabled ? Colors.green : Colors.grey,
+            size: 22,
+          ),
+        ),
+        title: const Text(
+          'Fingerprint Login',
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+        ),
+        subtitle: Text(
+          _biometricEnabled ? 'Enabled — tap to disable' : 'Enable quick login with fingerprint',
+          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+        ),
+        trailing: Switch(
+          value: _biometricEnabled,
+          onChanged: _toggleBiometric,
+          activeThumbColor: Colors.green,
+          activeTrackColor: Colors.green.withValues(alpha: 0.3),
+        ),
       ),
     );
   }
