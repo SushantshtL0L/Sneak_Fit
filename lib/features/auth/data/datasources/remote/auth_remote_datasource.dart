@@ -39,6 +39,8 @@ class AuthRemoteDatasource implements IAuthDatasource {
         password: '', // We don't store password from remote
         userName: authResponse.username,
         role: authResponse.role,
+        name: authResponse.name,
+        profileImage: authResponse.profileImage,
       );
     }
     return null;
@@ -135,6 +137,22 @@ class AuthRemoteDatasource implements IAuthDatasource {
         ApiEndpoints.resetPassword,
         data: {
           'token': token,
+          'newPassword': newPassword,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.changePassword,
+        data: {
+          'oldPassword': oldPassword,
           'newPassword': newPassword,
         },
       );

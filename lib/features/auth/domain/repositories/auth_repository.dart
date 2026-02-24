@@ -11,4 +11,5 @@ abstract interface class IAuthRepository {
   Future<Either<Failure, AuthEntity>> getUserProfile();
   Future<Either<Failure, bool>> forgotPassword(String email);
   Future<Either<Failure, bool>> resetPassword(String token, String newPassword);
+  Future<Either<Failure, bool>> changePassword(String oldPassword, String newPassword);
 }
