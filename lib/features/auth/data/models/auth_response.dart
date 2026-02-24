@@ -4,6 +4,8 @@ class AuthResponse {
   final String email;
   final String username;
   final String role;
+  final String? name;
+  final String? profileImage;
 
   AuthResponse({
     required this.token,
@@ -11,6 +13,8 @@ class AuthResponse {
     required this.email,
     required this.username,
     required this.role,
+    this.name,
+    this.profileImage,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
@@ -21,6 +25,8 @@ class AuthResponse {
       email: userData['email'] ?? '',
       username: userData['username'] ?? '',
       role: userData['role'] ?? 'user',
+      name: userData['name'],
+      profileImage: userData['image'],
     );
   }
 }

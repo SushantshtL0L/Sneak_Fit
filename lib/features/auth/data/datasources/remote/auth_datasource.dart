@@ -13,4 +13,5 @@ abstract interface class IAuthDatasource {
   Future<UserModel?> updateProfile(String name, String? imagePath);
   Future<bool> forgotPassword(String email);
   Future<bool> resetPassword(String token, String newPassword);
+  Future<bool> changePassword(String oldPassword, String newPassword);
 }

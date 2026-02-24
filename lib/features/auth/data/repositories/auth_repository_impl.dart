@@ -41,6 +41,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         email: response.email,
         username: response.userName ?? '',
         role: response.role,
+        profilePicture: response.profileImage,
       );
 
       return Right(
@@ -49,6 +50,8 @@ class AuthRepositoryImpl implements IAuthRepository {
           email: response.email,
           userName: response.userName,
           role: response.role,
+          name: response.name,
+          profileImage: response.profileImage,
         ),
       );
     } catch (e) {
@@ -205,6 +208,20 @@ class AuthRepositoryImpl implements IAuthRepository {
         return const Right(true);
       } else {
         return const Left(ApiFailure(message: 'Failed to reset password'));
+      }
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> changePassword(String oldPassword, String newPassword) async {
+    try {
+      final success = await remote.changePassword(oldPassword, newPassword);
+      if (success) {
+        return const Right(true);
+      } else {
+        return const Left(ApiFailure(message: 'Failed to change password. Please check your old password.'));
       }
     } catch (e) {
       return Left(ApiFailure(message: e.toString()));
