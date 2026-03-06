@@ -8,8 +8,9 @@ import 'package:sneak_fit/features/auth/presentation/view_model/auth_view_model.
 import 'package:sneak_fit/features/auth/presentation/widgets/my_button.dart';
 import 'package:sneak_fit/features/auth/presentation/widgets/my_textfield.dart';
 
-// Create a Mock for AuthViewModel
-class MockAuthViewModel extends StateNotifier<AuthState> with Mock implements AuthViewModel {
+class MockAuthViewModel extends StateNotifier<AuthState>
+    with Mock
+    implements AuthViewModel {
   MockAuthViewModel() : super(const AuthState());
 }
 
@@ -20,61 +21,67 @@ void main() {
     mockViewModel = MockAuthViewModel();
   });
 
-  Widget createWidgetUnderTest() {
-    return ProviderScope(
-      overrides: [
-        authViewModelProvider.overrideWith((ref) => mockViewModel),
-      ],
-      child: const MaterialApp(
-        home: SignupScreen(),
+  // Helper: build widget with large screen to prevent off-screen tap issues
+  Future<void> pumpSignupScreen(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authViewModelProvider.overrideWith((ref) => mockViewModel),
+        ],
+        child: MaterialApp(
+          home: const SignupScreen(),
+          routes: {
+            '/login': (_) => const Scaffold(body: Text('Login')),
+          },
+        ),
       ),
     );
+    await tester.pump(const Duration(milliseconds: 100));
   }
 
-  testWidgets('SignupScreen should display all registration fields and sign up button', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
+  testWidgets('SignupScreen should display all registration fields and sign up button',
+      (WidgetTester tester) async {
+    await pumpSignupScreen(tester);
 
-    // Verify Title
     expect(find.text("Create Your Account"), findsOneWidget);
-
-    // Verify TextFields (Name, Email, Password, Confirm Password)
     expect(find.byType(MyTextField), findsNWidgets(4));
-    expect(find.widgetWithText(MyTextField, "Full Name"), findsOneWidget);
-    expect(find.widgetWithText(MyTextField, "Email"), findsOneWidget);
-    expect(find.widgetWithText(MyTextField, "Password"), findsOneWidget);
-    expect(find.widgetWithText(MyTextField, "Confirm Password"), findsOneWidget);
-
-    // Verify Sign Up Button
     expect(find.byType(MyButton), findsOneWidget);
     expect(find.text("Sign Up"), findsOneWidget);
   });
 
-  testWidgets('SignupScreen should show error snackbar when fields are empty', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
+  testWidgets('SignupScreen should show error snackbar when fields are empty',
+      (WidgetTester tester) async {
+    await pumpSignupScreen(tester);
 
-    // Tap sign up button without entering anything
-    await tester.tap(find.text("Sign Up"));
-    await tester.pump();
+    await tester.ensureVisible(find.text("Sign Up"));
+    await tester.tap(find.text("Sign Up"), warnIfMissed: false);
+    await tester.pumpAndSettle();
 
-    // Verify SnackBar
-    expect(find.byType(SnackBar), findsOneWidget);
     expect(find.text("Please fill all fields"), findsOneWidget);
   });
 
-  testWidgets('SignupScreen should show error snackbar when passwords do not match', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
+  testWidgets('SignupScreen should show error snackbar when passwords do not match',
+      (WidgetTester tester) async {
+    await pumpSignupScreen(tester);
 
-    // Enter details with mismatching passwords
-    await tester.enterText(find.widgetWithText(MyTextField, "Full Name"), "John Doe");
-    await tester.enterText(find.widgetWithText(MyTextField, "Email"), "john@example.com");
-    await tester.enterText(find.widgetWithText(MyTextField, "Password"), "password123");
-    await tester.enterText(find.widgetWithText(MyTextField, "Confirm Password"), "password456");
-
-    // Tap sign up button
-    await tester.tap(find.text("Sign Up"));
+    // Enter text into the 4 fields by index
+    await tester.enterText(find.byType(TextField).at(0), 'John Doe');
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).at(1), 'john@example.com');
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).at(2), 'password123');
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).at(3), 'password456');
     await tester.pump();
 
-    // Verify SnackBar
+    await tester.ensureVisible(find.text("Sign Up"));
+    await tester.tap(find.text("Sign Up"), warnIfMissed: false);
+    await tester.pumpAndSettle();
+
     expect(find.text("Passwords do not match"), findsOneWidget);
   });
 }

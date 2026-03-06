@@ -41,15 +41,15 @@ void main() {
   });
 
   test('should return Failure when repository login fails', () async {
-    // Arrange
+    
     const tFailure = ApiFailure(message: 'Invalid Credentials');
     when(() => mockAuthRepository.login(any(), any()))
         .thenAnswer((_) async => const Left(tFailure));
 
-    // Act
+   
     final result = await usecase(const LoginUsecaseParams(email: tEmail, password: tPassword));
 
-    // Assert
+    
     expect(result, const Left(tFailure));
     verify(() => mockAuthRepository.login(tEmail, tPassword)).called(1);
   });

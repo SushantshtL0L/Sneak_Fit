@@ -40,13 +40,16 @@ void main() {
       // Act
       final result = tItemApiModel.toJson();
 
-      // Assert
+      // Assert — toJson() includes brand, size, color (as null when not set)
       final expectedJson = {
         'name': 'Nike Air Max',
         'condition': 'new',
         'price': 15000.0,
         'description': 'Classic comfort',
         'image': 'nike.jpg',
+        'brand': null,
+        'size': null,
+        'color': null,
         'status': 'available',
       };
       expect(result, expectedJson);

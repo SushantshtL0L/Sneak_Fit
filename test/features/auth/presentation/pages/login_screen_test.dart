@@ -60,10 +60,14 @@ void main() {
   });
 
   testWidgets('LoginScreen should show loading indicator on button when state is loading', (WidgetTester tester) async {
-    // Set state to loading
-    mockViewModel.state = const AuthState(status: AuthStatus.loading);
+    // The LoginScreen button uses authState.isAuthenticating, NOT authStatus.loading
+    mockViewModel.state = const AuthState(
+      status: AuthStatus.loading,
+      isAuthenticating: true,  // <-- this is what MyButton actually checks
+    );
 
     await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump(); // settle biometric initState check
 
     // MyButton shows CircularProgressIndicator when isLoading is true
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
