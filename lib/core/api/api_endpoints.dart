@@ -9,7 +9,7 @@ class ApiEndpoints {
   // static const String baseUrl = 'http://192.168.18.152:5050/api/';
   // static const String baseUrl = 'http://10.0.2.2:5050/api/'; // Android Emulator
   // static const String baseUrl = 'http://localhost:5050/api/'; // iOS Simulator
-  static const bool isPhysicalDevice = false;
+  static const bool isPhysicalDevice = true;
 
   static const String compIpAddress = "192.168.18.152";
   static String get baseUrl {
@@ -34,8 +34,8 @@ class ApiEndpoints {
     return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
 
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 30);
+  static const Duration connectionTimeout = Duration(seconds: 5);
+  static const Duration receiveTimeout = Duration(seconds: 5);
 
   // ============ Auth Endpoints ============
   static const String auth = 'auth';

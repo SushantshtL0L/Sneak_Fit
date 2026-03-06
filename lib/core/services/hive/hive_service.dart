@@ -10,9 +10,11 @@ final hiveServiceProvider = Provider<HiveService>((ref) {
 class HiveService {
   static const String _authBoxName = 'auth_box';
   static const String _itemBoxName = 'item_box';
+  static const String _reviewBoxName = 'reviews_box';
   
   late Box<AuthHiveModel> _authBox;
   late Box<ItemHiveModel> _itemBox;
+  late Box _reviewBox;
 
   // Initialize Hive
   Future<void> init() async {
@@ -28,6 +30,7 @@ class HiveService {
 
     _authBox = await Hive.openBox<AuthHiveModel>(_authBoxName);
     _itemBox = await Hive.openBox<ItemHiveModel>(_itemBoxName);
+    _reviewBox = await Hive.openBox(_reviewBoxName);
   }
 
   // Register user
@@ -90,5 +93,25 @@ class HiveService {
 
   Future<List<ItemHiveModel>> getAllItems() async {
     return _itemBox.values.toList();
+  }
+
+  Future<void> clearItemBox() async {
+    await _itemBox.clear();
+  }
+
+  // ================= Review Box Methods =================
+
+  Future<void> saveReviews(String productId, List<Map<String, dynamic>> reviews) async {
+    await _reviewBox.put(productId, reviews);
+  }
+
+  Future<List<Map<String, dynamic>>?> getReviews(String productId) async {
+    final reviews = _reviewBox.get(productId);
+    if (reviews != null) {
+      return List<Map<String, dynamic>>.from(
+        (reviews as List).map((e) => Map<String, dynamic>.from(e)),
+      );
+    }
+    return null;
   }
 }

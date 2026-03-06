@@ -34,18 +34,17 @@ class ApiClient {
     _dio.interceptors.add(
       RetryInterceptor(
         dio: _dio,
-        retries: 3,
+        retries: 1, // Reduced to 1 to avoid hanging too long offline
         retryDelays: const [
           Duration(seconds: 1),
-          Duration(seconds: 2),
-          Duration(seconds: 3),
         ],
         retryEvaluator: (error, attempt) {
-          // Retry on connection errors and timeouts, not on 4xx/5xx
+          // If it's a solid connection error, don't keep hammering the dead server
+          if (error.type == DioExceptionType.connectionError) return false;
+          
           return error.type == DioExceptionType.connectionTimeout ||
               error.type == DioExceptionType.sendTimeout ||
-              error.type == DioExceptionType.receiveTimeout ||
-              error.type == DioExceptionType.connectionError;
+              error.type == DioExceptionType.receiveTimeout;
         },
       ),
     );
