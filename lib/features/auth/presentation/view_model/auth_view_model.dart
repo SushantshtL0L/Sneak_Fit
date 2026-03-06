@@ -8,6 +8,7 @@ import 'package:sneak_fit/features/auth/presentation/state/auth_state.dart';
 import 'package:sneak_fit/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:sneak_fit/features/auth/domain/usecases/reset_password_usecase.dart';
 import 'package:sneak_fit/features/auth/domain/usecases/change_password_usecase.dart';
+import 'package:sneak_fit/features/auth/domain/usecases/get_local_profile_usecase.dart';
 
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
   return AuthViewModel(
@@ -19,6 +20,7 @@ final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((r
     forgotPasswordUsecase: ref.read(forgotPasswordUsecaseProvider),
     resetPasswordUsecase: ref.read(resetPasswordUsecaseProvider),
     changePasswordUsecase: ref.read(changePasswordUsecaseProvider),
+    getLocalProfileUsecase: ref.read(getLocalProfileUsecaseProvider),
   );
 });
 
@@ -31,6 +33,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
   final ForgotPasswordUsecase _forgotPasswordUsecase;
   final ResetPasswordUsecase _resetPasswordUsecase;
   final ChangePasswordUsecase _changePasswordUsecase;
+  final GetLocalProfileUsecase _getLocalProfileUsecase;
 
   AuthViewModel({
     required LoginUsecase loginUsecase,
@@ -40,7 +43,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     required GetUserProfileUsecase getUserProfileUsecase,
     required ForgotPasswordUsecase forgotPasswordUsecase,
     required ResetPasswordUsecase resetPasswordUsecase,
-    required ChangePasswordUsecase changePasswordUsecase,
+    required GetLocalProfileUsecase getLocalProfileUsecase, required ChangePasswordUsecase changePasswordUsecase,
   })  : _loginUsecase = loginUsecase,
         _registerUsecase = registerUsecase,
         _logoutUsecase = logoutUsecase,
@@ -49,10 +52,25 @@ class AuthViewModel extends StateNotifier<AuthState> {
         _forgotPasswordUsecase = forgotPasswordUsecase,
         _resetPasswordUsecase = resetPasswordUsecase,
         _changePasswordUsecase = changePasswordUsecase,
-        super(AuthState());
+        _getLocalProfileUsecase = getLocalProfileUsecase,
+        super(AuthState()) {
+    _initializeUser();
+  }
+
+  Future<void> _initializeUser() async {
+    // 1. Get user from local session storage immediately (NO NETWORK)
+    final result = await _getLocalProfileUsecase.call(); 
+    result.fold(
+      (failure) => null,
+      (user) => state = state.copyWith(
+        status: AuthStatus.authenticated,
+        authEntity: user,
+      ),
+    );
+  }
 
   Future<void> getUserProfile() async {
-    // Only show loading status if we don't have user data yet
+    // No need to show loading if we already have user data
     if (state.authEntity == null) {
       state = state.copyWith(status: AuthStatus.loading);
     }
