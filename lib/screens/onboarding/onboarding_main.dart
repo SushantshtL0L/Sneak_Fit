@@ -11,21 +11,21 @@ class _OnboardingMainState extends State<OnboardingMain> {
   final PageController _controller = PageController();
   int _currentIndex = 0;
 
-  final List<Map<String, String>> _onboardingData = [
+  final List<Map<String, String?>> _onboardingData = [
     {
       "title": "Welcome to SneakFit",
       "description": "Discover the most exclusive sneakers and limited editions in one place.",
-      "image": "assets/images/shoe.png",
+      "image": "assets/images/Logo.png",
     },
     {
       "title": "Style Meets Comfort",
       "description": "Find your best style with our curated collection of new and thrift shoes.",
-      "image": "assets/images/shoe.png",
+      "image": null,
     },
     {
       "title": "Join the Sneaker Community",
       "description": "Start your journey today and step up your sneaker game.",
-      "image": "assets/images/shoe.png",
+      "image": null,
     },
   ];
 
@@ -63,35 +63,37 @@ class _OnboardingMainState extends State<OnboardingMain> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Image Section with Animation
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.8, end: 1.0),
-                      duration: const Duration(seconds: 1),
-                      builder: (context, value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: child,
-                        );
-                      },
-                      child: Container(
-                        height: 300,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30),
-                          child: Center(
-                            child: Image.asset(
-                              _onboardingData[index]["image"]!,
-                              fit: BoxFit.contain,
-                              width: 280,
+                    if (_onboardingData[index]["image"] != null)
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.8, end: 1.0),
+                        duration: const Duration(seconds: 1),
+                        builder: (context, value, child) {
+                          return Transform.scale(
+                            scale: value,
+                            child: child,
+                          );
+                        },
+                        child: Container(
+                          height: 300,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(30),
+                            child: Center(
+                              child: Image.asset(
+                                _onboardingData[index]["image"]!,
+                                fit: BoxFit.contain,
+                                width: 280,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 60),
+                    if (_onboardingData[index]["image"] != null)
+                      const SizedBox(height: 60),
                     Text(
                       _onboardingData[index]["title"]!,
                       textAlign: TextAlign.center,

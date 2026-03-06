@@ -1,7 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/features/cart/presentation/view_model/cart_view_model.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart';
+import 'package:sneak_fit/features/sensors/presentation/view_model/sensor_view_model.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -11,11 +14,27 @@ class CartScreen extends ConsumerWidget {
     final cartState = ref.watch(cartViewModelProvider);
     final cartItems = cartState.cartItems;
     final totalPrice = cartState.totalPrice;
+    final isDark = ref.watch(themeViewModelProvider).isDarkMode;
+
+    // SHAKE TO CHECKOUT LOGIC
+    ref.listen(sensorViewModelProvider.select((s) => s.isShakeDetected), (previous, next) {
+      if (next && cartItems.isNotEmpty) {
+        // Provide haptic feedback if possible or just navigate
+        Navigator.pushNamed(context, '/checkout');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(" Shake detected! Fast-tracking to checkout..."),
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
       body: cartItems.isEmpty
-          ? _buildEmptyCart()
+          ? _buildEmptyCart(isDark)
           : Stack(
               children: [
                 // Cart Items List
@@ -26,9 +45,38 @@ class CartScreen extends ConsumerWidget {
                     top: 16,
                     bottom: 120, // Add space for the checkout footer
                   ),
-                  itemCount: cartItems.length,
+                  itemCount: cartItems.length + 1,
                   itemBuilder: (context, index) {
-                    final item = cartItems[index];
+                    if (index == 0) {
+                      // Shake Pro-tip Chip
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 20, top: 10),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF23D19D).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: const Color(0xFF23D19D).withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.vibration, color: Color(0xFF23D19D), size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                "Pro-tip: Shake your phone to instantly checkout!",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    
+                    final item = cartItems[index - 1];
                     final imageUrl = item.image.startsWith('http')
                         ? item.image
                         : '${ApiEndpoints.baseImageUrl}${item.image}';
@@ -37,8 +85,9 @@ class CartScreen extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECECEC),
+                        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFECECEC),
                         borderRadius: BorderRadius.circular(24),
+                        border: isDark ? Border.all(color: Colors.white10) : null,
                       ),
                       child: Row(
                         children: [
@@ -47,18 +96,20 @@ class CartScreen extends ConsumerWidget {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: Image.network(
-                                imageUrl,
+                              child: CachedNetworkImage(
+                                imageUrl: imageUrl,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.image_not_supported,
-                                      size: 40, color: Colors.grey);
-                                },
+                                placeholder: (context, url) => Container(
+                                  color: isDark ? Colors.white10 : Colors.grey[100],
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.image_not_supported,
+                                        size: 40, color: Colors.grey),
                               ),
                             ),
                           ),
@@ -79,18 +130,18 @@ class CartScreen extends ConsumerWidget {
                                         children: [
                                           Text(
                                             item.brand,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
+                                              color: isDark ? Colors.white : Colors.black87,
                                             ),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
                                             item.name,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
-                                              color: Colors.black54,
+                                              color: isDark ? Colors.white70 : Colors.black54,
                                             ),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
@@ -128,9 +179,10 @@ class CartScreen extends ConsumerWidget {
                                     Flexible(
                                       child: Text(
                                         item.color,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
+                                          color: isDark ? Colors.white70 : Colors.black,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -145,9 +197,10 @@ class CartScreen extends ConsumerWidget {
                                     const SizedBox(width: 8),
                                     Text(
                                       'Size ${item.size}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
+                                        color: isDark ? Colors.white70 : Colors.black,
                                       ),
                                     ),
                                     const Spacer(),
@@ -228,17 +281,17 @@ class CartScreen extends ConsumerWidget {
                     right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                        borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black12,
+                            color: isDark ? Colors.black45 : Colors.black12,
                             blurRadius: 10,
-                            offset: Offset(0, -5),
+                            offset: const Offset(0, -5),
                           ),
                         ],
                       ),
@@ -261,10 +314,10 @@ class CartScreen extends ConsumerWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Rs ${totalPrice.toStringAsFixed(0)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                                    color: isDark ? Colors.white : Colors.black,
                                   ),
                                 ),
                               ],
@@ -303,11 +356,11 @@ class CartScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyCart() {
+  Widget _buildEmptyCart(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(
             Icons.shopping_cart_outlined,
             size: 80,
@@ -318,7 +371,7 @@ class CartScreen extends ConsumerWidget {
             'Your cart is empty',
             style: TextStyle(
               fontSize: 20,
-              color: Colors.grey,
+              color: isDark ? Colors.grey[400] : Colors.grey,
               fontWeight: FontWeight.w500,
             ),
           ),

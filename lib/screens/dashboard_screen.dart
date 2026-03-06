@@ -65,13 +65,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ProfileScreen(),
         ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(isSeller ? "Seller Dashboard" : "SneakFit"),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         actions: [
           Consumer(
             builder: (context, ref, child) {
@@ -86,7 +88,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         MaterialPageRoute(builder: (_) => const NotificationScreen()),
                       );
                     },
-                    icon: const Icon(Icons.notifications_none),
+                    icon: Icon(Icons.notifications_none, color: isDark ? Colors.white : Colors.black),
                   ),
                   if (notificationState.unreadCount > 0)
                     Positioned(
@@ -130,15 +132,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             setState(() => _currentIndex = 2);
           }
         },
-        backgroundColor: Colors.black,
+        backgroundColor: isDark ? Colors.white : Colors.black,
         child: Icon(
           isSeller ? Icons.add : Icons.favorite,
-          color: Colors.white,
+          color: isDark ? Colors.black : Colors.white,
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         elevation: 12,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
         child: SizedBox(
@@ -147,18 +150,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: isSeller 
               ? [
-                  _navItem(Icons.grid_view_outlined, 'Dash', 0),
-                  _navItem(Icons.inventory_2_outlined, 'Inventory', 1),
+                  _navItem(Icons.grid_view_outlined, 'Dash', 0, isDark),
+                  _navItem(Icons.inventory_2_outlined, 'Inventory', 1, isDark),
                   const SizedBox(width: 48), // Gap for FAB
-                  _navItem(Icons.eco_outlined, 'Thrifts', 3), // Thrifts shifted
-                  _navItem(Icons.person_outline, 'Profile', 4),
+                  _navItem(Icons.eco_outlined, 'Thrifts', 3, isDark), // Thrifts shifted
+                  _navItem(Icons.person_outline, 'Profile', 4, isDark),
                 ]
               : [
-                  _navItem(Icons.home_outlined, 'Home', 0),
-                  _navItem(Icons.eco_outlined, 'Thrifts', 1),
+                  _navItem(Icons.home_outlined, 'Home', 0, isDark),
+                  _navItem(Icons.eco_outlined, 'Thrifts', 1, isDark),
                   const SizedBox(width: 48), // Gap for FAB
-                  _navItem(Icons.shopping_cart_outlined, 'Cart', 3),
-                  _navItem(Icons.person_outline, 'Profile', 4),
+                  _navItem(Icons.shopping_cart_outlined, 'Cart', 3, isDark),
+                  _navItem(Icons.person_outline, 'Profile', 4, isDark),
                 ],
           ),
         ),
@@ -166,8 +169,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _navItem(IconData icon, String label, int index) {
+  Widget _navItem(IconData icon, String label, int index, bool isDark) {
     final isSelected = _currentIndex == index;
+    final activeColor = isDark ? Colors.white : Colors.black;
+    final inactiveColor = isDark ? Colors.grey[600] : Colors.grey;
 
     return InkWell(
       onTap: () {
@@ -183,14 +188,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Icon(
               icon,
               size: 24, 
-              color: isSelected ? Colors.black : Colors.grey,
+              color: isSelected ? activeColor : inactiveColor,
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
                 fontSize: 11, 
-                color: isSelected ? Colors.black : Colors.grey,
+                color: isSelected ? activeColor : inactiveColor,
               ),
             ),
           ],

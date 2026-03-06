@@ -6,6 +6,8 @@ import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
 import 'package:sneak_fit/features/wishlist/presentation/view_model/wishlist_view_model.dart';
+import 'package:sneak_fit/features/item/presentation/widgets/filter_bottom_sheet.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart';
 import 'package:sneak_fit/screens/product_detail_screen_new.dart';
 
 class ThriftsScreen extends ConsumerWidget {
@@ -14,12 +16,13 @@ class ThriftsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemState = ref.watch(itemViewModelProvider);
+    final isDark = ref.watch(themeViewModelProvider).isDarkMode;
     
-    // Filter only Thrift items
-    final thriftItems = itemState.items.where((item) => item.condition == ItemCondition.thrift).toList();
+    // Filter only Thrift items from the filtered list
+    final thriftItems = itemState.filteredItems.where((item) => item.condition == ItemCondition.thrift).toList();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () => ref.read(itemViewModelProvider.notifier).getAllItems(),
@@ -32,20 +35,45 @@ class ThriftsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Thrift Shop",
-                        style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Thrift Shop",
+                            style: TextStyle(
+                              fontSize: 32, 
+                              fontWeight: FontWeight.bold, 
+                              letterSpacing: -1,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.tune, color: isDark ? Colors.white : Colors.black),
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) => const FilterBottomSheet(),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                       const Text(
                         "Giving kicks a second life.",
                         style: TextStyle(color: Colors.grey, fontSize: 16),
                       ),
                       const SizedBox(height: 20),
-                      _thriftPromoBanner(),
+                      _thriftPromoBanner(isDark),
                       const SizedBox(height: 30),
-                      const Text(
+                      Text(
                         "Top Thrift Finds",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 20, 
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black,
+                        ),
                       ),
                       const SizedBox(height: 15),
                     ],
@@ -69,7 +97,7 @@ class ThriftsScreen extends ConsumerWidget {
                       childAspectRatio: 0.68,
                     ),
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) => _thriftProductCard(context, thriftItems[index], ref),
+                      (context, index) => _thriftProductCard(context, thriftItems[index], ref, isDark),
                       childCount: thriftItems.length,
                     ),
                   ),
@@ -82,24 +110,20 @@ class ThriftsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _thriftPromoBanner() {
+  Widget _thriftPromoBanner(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF00B894), Color(0xFF55E6C1)],
+        gradient: LinearGradient(
+          colors: isDark 
+            ? [const Color(0xFF006B56), const Color(0xFF00B894)] 
+            : [const Color(0xFF00B894), const Color(0xFF55E6C1)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00B894).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        border: isDark ? Border.all(color: Colors.white10) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +154,7 @@ class ThriftsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _thriftProductCard(BuildContext context, ItemEntity item, WidgetRef ref) {
+  Widget _thriftProductCard(BuildContext context, ItemEntity item, WidgetRef ref, bool isDark) {
     final String imageUrl = item.media != null 
         ? "${ApiEndpoints.baseImageUrl}${item.media}" 
         : "";
@@ -148,9 +172,9 @@ class ThriftsScreen extends ConsumerWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: isDark ? const Color(0xFF1A1A1A) : Colors.grey[50],
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(color: isDark ? Colors.white10 : Colors.grey[200]!),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,11 +203,14 @@ class ThriftsScreen extends ConsumerWidget {
                       onTap: () => ref.read(wishlistViewModelProvider.notifier).toggleWishlist(item),
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF2C2C2C) : Colors.white, 
+                            shape: BoxShape.circle,
+                        ),
                         child: Icon(
                           isInWishlist ? Icons.favorite : Icons.favorite_border, 
                           size: 18, 
-                          color: isInWishlist ? Colors.red : Colors.black,
+                          color: isInWishlist ? Colors.red : (isDark ? Colors.white : Colors.black),
                         ),
                       ),
                     ),
@@ -199,8 +226,22 @@ class ThriftsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
+                    item.brand?.toUpperCase() ?? "SNEAKFIT",
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.tealAccent : Colors.grey,
+                        letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
                     item.itemName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.black,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -209,11 +250,22 @@ class ThriftsScreen extends ConsumerWidget {
                     children: [
                       Text(
                         "Rs. ${item.price}",
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900, 
+                            fontSize: 16,
+                            color: isDark ? Colors.tealAccent : Colors.black,
+                        ),
                       ),
                       const Spacer(),
                       const Icon(Icons.star, color: Colors.amber, size: 14),
-                      const Text(" 4.8", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text(
+                        " 4.8", 
+                        style: TextStyle(
+                            fontSize: 12, 
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white70 : Colors.black,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -221,12 +273,13 @@ class ThriftsScreen extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00B894).withValues(alpha: 0.1),
+                      color: const Color(0xFF00B894).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF00B894).withValues(alpha: 0.3)),
                     ),
                     child: const Center(
                       child: Text(
-                        "CERTIFIED THRIFT",
+                        "THRIFT",
                         style: TextStyle(color: Color(0xFF00B894), fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -246,9 +299,9 @@ class ThriftsScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.eco_outlined, size: 80, color: Colors.grey[300]),
+            Icon(Icons.eco_outlined, size: 80, color: Colors.grey[800]),
             const SizedBox(height: 20),
-            const Text("No thrifts yet!", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text("No thrifts yet!", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)),
             const Text("Check back soon for unique finds.", style: TextStyle(color: Colors.grey)),
           ],
         ),

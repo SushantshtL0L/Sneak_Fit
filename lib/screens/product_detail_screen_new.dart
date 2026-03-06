@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
@@ -7,6 +8,7 @@ import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/core/utils/my_snack_bar.dart';
 import 'package:sneak_fit/features/review/presentation/view_model/review_view_model.dart';
 import 'package:sneak_fit/features/review/domain/entities/review_entity.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ProductDetailScreenNew extends ConsumerStatefulWidget {
@@ -109,6 +111,7 @@ class _ProductDetailScreenNewState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = ref.watch(themeViewModelProvider).isDarkMode;
     final imageUrl = widget.item.media != null
         ? (widget.item.media!.startsWith('http')
             ? widget.item.media!
@@ -118,17 +121,17 @@ class _ProductDetailScreenNewState
     final isThrift = widget.item.condition == ItemCondition.thrift;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.item.brand ?? 'Product Details',
-          style: const TextStyle(color: Colors.black),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
         ),
       ),
       body: SingleChildScrollView(
@@ -139,17 +142,18 @@ class _ProductDetailScreenNewState
             // Product Image
             Center(
               child: Container(
-                height: 250,
+                height: 200, // Reduced from 250
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: isDark ? const Color(0xFF1A1A1A) : Colors.grey[100],
                   borderRadius: BorderRadius.circular(20),
+                  border: isDark ? Border.all(color: Colors.white10) : null,
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl,
+                      ? Image(
+                          image: CachedNetworkImageProvider(imageUrl),
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(Icons.image_not_supported,
@@ -160,7 +164,7 @@ class _ProductDetailScreenNewState
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16), // Reduced from 24
 
             // Brand & Condition Badge
             Row(
@@ -168,77 +172,84 @@ class _ProductDetailScreenNewState
                 Expanded(
                   child: Text(
                     widget.item.brand ?? 'Unknown Brand',
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: 20, // Reduced from 24
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
                 ),
-                if (isThrift)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.orange[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'THRIFT',
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isThrift 
+                      ? const Color(0xFF00B894).withValues(alpha: 0.15) 
+                      : Colors.blueAccent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isThrift ? const Color(0xFF00B894).withValues(alpha: 0.3) : Colors.blueAccent.withValues(alpha: 0.3),
                     ),
                   ),
+                  child: Text(
+                    isThrift ? 'THRIFT' : 'NEW CONDITION',
+                    style: TextStyle(
+                      color: isThrift ? const Color(0xFF00B894) : (isDark ? Colors.blueAccent : Colors.blue[700]),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               ],
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4), // Reduced from 8
 
             // Product Name
             Text(
               widget.item.itemName,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 14, // Reduced from 16
                 color: Colors.grey,
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced from 16
 
             // Price
             Text(
               'Rs ${widget.item.price.toStringAsFixed(0)}',
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 24, // Reduced from 28
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF23D19D),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 12), // Reduced from 20
 
             // Description
             if (widget.item.description != null &&
                 widget.item.description!.isNotEmpty) ...[
-              const Text(
+              Text(
                 'Description',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16, // Reduced from 18
                   fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4), // Reduced from 8
               Text(
                 widget.item.description!,
+                maxLines: 2, // Limit lines to keep it compact
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.grey,
-                  fontSize: 14,
-                  height: 1.5,
+                  fontSize: 13, // Reduced from 14
+                  height: 1.4,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12), // Reduced from 20
             ],
 
             if (isThrift)
@@ -246,20 +257,21 @@ class _ProductDetailScreenNewState
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Item Specification',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16, // Reduced from 18
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8), // Reduced from 12
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: isDark ? const Color(0xFF1A1A1A) : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: isDark ? Colors.white10 : Colors.grey[300]!),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -268,9 +280,10 @@ class _ProductDetailScreenNewState
                         const SizedBox(width: 8),
                         Text(
                           'Size: ${widget.item.size ?? "N/A"}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                         ),
                       ],
@@ -280,14 +293,15 @@ class _ProductDetailScreenNewState
               )
             else ...[
               // Selectable sizes for new items
-              const Text(
+              Text(
                 'Size',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16, // Reduced from 18
                   fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8), // Reduced from 12
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
@@ -301,23 +315,23 @@ class _ProductDetailScreenNewState
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+                          horizontal: 16, vertical: 8), // Reduced padding
                       decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFF23D19D)
-                            : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                            : (isDark ? const Color(0xFF1A1A1A) : Colors.grey[200]),
+                        borderRadius: BorderRadius.circular(10), // Slightly smaller radius
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFF23D19D)
-                              : Colors.grey[300]!,
+                              : (isDark ? Colors.white10 : Colors.grey[300]!),
                           width: 2,
                         ),
                       ),
                       child: Text(
                         size,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
+                          color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -327,18 +341,19 @@ class _ProductDetailScreenNewState
               ),
             ],
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16), // Reduced from 24
 
             // Color Selection - ONLY for non-thrift items
             if (!isThrift) ...[
-              const Text(
+              Text(
                 'Color',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16, // Reduced from 18
                   fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8), // Reduced from 12
               Wrap(
                 spacing: 16,
                 children: availableColors.entries.map((entry) {
@@ -355,15 +370,15 @@ class _ProductDetailScreenNewState
                     child: Column(
                       children: [
                         Container(
-                          width: 40,
-                          height: 40,
+                          width: 32, // Reduced from 40
+                          height: 32, // Reduced from 40
                           decoration: BoxDecoration(
                             color: colorValue,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isSelected
                                   ? const Color(0xFF23D19D)
-                                  : Colors.grey[300]!,
+                                  : (isDark ? Colors.white10 : Colors.grey[300]!),
                               width: 3,
                             ),
                             boxShadow: isSelected
@@ -394,7 +409,9 @@ class _ProductDetailScreenNewState
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
-                            color: isSelected ? Colors.black : Colors.grey,
+                            color: isSelected 
+                                ? (isDark ? const Color(0xFF23D19D) : Colors.black) 
+                                : Colors.grey,
                           ),
                         ),
                       ],
@@ -404,41 +421,53 @@ class _ProductDetailScreenNewState
               ),
             ],
 
-            const SizedBox(height: 40),
-
-            // Add to Cart Button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF23D19D),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
+            const SizedBox(height: 20), // Reduced from 40
+            _buildReviewSection(isDark),
+            const SizedBox(height: 20), // Reduced from 40
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF121212) : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            height: 50, // Reduced from 56
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF23D19D),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onPressed: _addToCart,
-                child: const Text(
-                  'Add to Cart',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                elevation: 0,
+              ),
+              onPressed: _addToCart,
+              child: const Text(
+                'Add to Cart',
+                style: TextStyle(
+                  fontSize: 16, // Reduced from 18
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            _buildReviewSection(),
-            const SizedBox(height: 40),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildReviewSection() {
+  Widget _buildReviewSection(bool isDark) {
     final state = ref.watch(reviewViewModelProvider);
 
     return Column(
@@ -447,11 +476,12 @@ class _ProductDetailScreenNewState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Product Reviews',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black,
               ),
             ),
             if (state.reviews.isNotEmpty)
@@ -469,8 +499,9 @@ class _ProductDetailScreenNewState
             padding: const EdgeInsets.all(24),
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: isDark ? const Color(0xFF1A1A1A) : Colors.grey[100],
               borderRadius: BorderRadius.circular(16),
+              border: isDark ? Border.all(color: Colors.white10) : null,
             ),
             child: const Column(
               children: [
@@ -491,14 +522,14 @@ class _ProductDetailScreenNewState
             separatorBuilder: (context, index) => const Divider(height: 32),
             itemBuilder: (context, index) {
               final review = state.reviews[index];
-              return _buildReviewTile(review);
+              return _buildReviewTile(review, isDark);
             },
           ),
       ],
     );
   }
 
-  Widget _buildReviewTile(ReviewEntity review) {
+  Widget _buildReviewTile(ReviewEntity review, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -508,7 +539,7 @@ class _ProductDetailScreenNewState
               radius: 18,
               backgroundColor: Colors.grey[200],
               backgroundImage: review.userImage != null && review.userImage!.isNotEmpty
-                  ? NetworkImage('${ApiEndpoints.baseImageUrl}${review.userImage}')
+                  ? CachedNetworkImageProvider('${ApiEndpoints.baseImageUrl}${review.userImage}')
                   : null,
               child: review.userImage == null || review.userImage!.isEmpty
                   ? const Icon(Icons.person, size: 20, color: Colors.grey)
@@ -521,7 +552,11 @@ class _ProductDetailScreenNewState
                 children: [
                   Text(
                     review.userName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Row(
@@ -551,7 +586,11 @@ class _ProductDetailScreenNewState
         const SizedBox(height: 12),
         Text(
           review.comment,
-          style: const TextStyle(fontSize: 14, height: 1.4, color: Colors.black87),
+          style: TextStyle(
+              fontSize: 14, 
+              height: 1.4, 
+              color: isDark ? Colors.white70 : Colors.black87,
+          ),
         ),
       ],
     );

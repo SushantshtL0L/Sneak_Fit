@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart';
 import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
+import 'package:sneak_fit/features/item/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:sneak_fit/screens/product_detail_screen_new.dart';
 
 class AllProductsScreen extends ConsumerWidget {
@@ -12,6 +15,9 @@ class AllProductsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemState = ref.watch(itemViewModelProvider);
+    final itemsToDisplay = itemState.filteredItems;
+    final isDark = ref.watch(themeViewModelProvider).isDarkMode;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("All Products"),
@@ -21,18 +27,62 @@ class AllProductsScreen extends ConsumerWidget {
             Navigator.pop(context); 
           },
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.filter_list),
+                if (itemState.selectedBrand != null && itemState.selectedBrand != 'All' || 
+                    itemState.selectedSize != null && itemState.selectedSize != 'All')
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const FilterBottomSheet(),
+              );
+            },
+          ),
+        ],
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         elevation: 1,
       ),
       body: itemState.status == ItemStatus.loading && itemState.items.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : itemState.items.isEmpty
-              ? const Center(child: Text("No products found"))
+          : itemsToDisplay.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.search_off, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      const Text("No products match your filters"),
+                      TextButton(
+                        onPressed: () => ref.read(itemViewModelProvider.notifier).resetFilters(),
+                        child: const Text("Clear Filters"),
+                      ),
+                    ],
+                  ),
+                )
               : Padding(
                   padding: const EdgeInsets.all(12),
                   child: GridView.builder(
-                    itemCount: itemState.items.length,
+                    itemCount: itemsToDisplay.length,
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
@@ -40,12 +90,13 @@ class AllProductsScreen extends ConsumerWidget {
                       childAspectRatio: 0.65,
                     ),
                     itemBuilder: (context, index) {
-                      final item = itemState.items[index];
+                      final item = itemsToDisplay[index];
                       return productCard(
                         context: context,
                         item: item,
                         rating: "4.5",
                         sold: "4300 SOLD",
+                        isDark: isDark,
                       );
                     },
                   ),
@@ -58,6 +109,7 @@ class AllProductsScreen extends ConsumerWidget {
     required ItemEntity item,
     required String rating,
     required String sold,
+    required bool isDark,
   }) {
     final String imageUrl = item.media != null
         ? "${ApiEndpoints.baseImageUrl}${item.media}"
@@ -77,7 +129,7 @@ class AllProductsScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -86,10 +138,17 @@ class AllProductsScreen extends ConsumerWidget {
             Expanded(
               child: Center(
                 child: imageUrl.startsWith('http')
-                    ? Image.network(
-                        imageUrl,
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
+                        placeholder: (context, url) => const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
                             Image.asset("assets/images/shoe.png"),
                       )
                     : Image.asset(
@@ -100,12 +159,24 @@ class AllProductsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
+              item.brand?.toUpperCase() ?? "SNEAKFIT",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.tealAccent : Colors.grey,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
               item.itemName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'OpenSans',
+                fontSize: 14,
+                color: isDark ? Colors.white : Colors.black,
               ),
             ),
             const SizedBox(height: 4),
@@ -125,12 +196,25 @@ class AllProductsScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: item.condition == ItemCondition.newCondition
+                        ? (isDark ? Colors.blueAccent.withValues(alpha: 0.15) : Colors.blue[50])
+                        : (isDark ? const Color(0xFF00B894).withValues(alpha: 0.15) : const Color(0xFFE0F7F2)),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: item.condition == ItemCondition.newCondition
+                          ? (isDark ? Colors.blueAccent.withValues(alpha: 0.3) : Colors.blue[200]!)
+                          : (isDark ? const Color(0xFF00B894).withValues(alpha: 0.3) : const Color(0xFFB9EFE5)),
+                    ),
                   ),
                   child: Text(
-                    sold,
-                    style: const TextStyle(fontSize: 10),
+                    item.condition == ItemCondition.newCondition ? "NEW" : "THRIFT",
+                    style: TextStyle(
+                      fontSize: 9, 
+                      fontWeight: FontWeight.bold,
+                      color: item.condition == ItemCondition.newCondition
+                          ? (isDark ? Colors.blueAccent : Colors.blue[700])
+                          : const Color(0xFF00B894),
+                    ),
                   ),
                 ),
               ],

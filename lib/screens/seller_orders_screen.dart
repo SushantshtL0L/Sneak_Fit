@@ -22,18 +22,19 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final ordersState = ref.watch(ordersViewModelProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           "Sales Management",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(ordersViewModelProvider.notifier).fetchAllOrders(),
@@ -43,8 +44,9 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
   }
 
   Widget _buildBody(BuildContext context, OrdersState state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (state.isLoading && state.orders.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: Colors.black));
+      return Center(child: CircularProgressIndicator(color: isDark ? Colors.tealAccent : Colors.black));
     }
 
     if (state.error != null && state.orders.isEmpty) {
@@ -54,10 +56,14 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
           children: [
             const Icon(Icons.error_outline, size: 60, color: Colors.red),
             const SizedBox(height: 16),
-            Text(state.error!),
+            Text(state.error!, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => ref.read(ordersViewModelProvider.notifier).fetchAllOrders(),
-              child: const Text("Retry"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? Colors.tealAccent : Colors.black,
+              ),
+              child: Text("Retry", style: TextStyle(color: isDark ? Colors.black : Colors.white)),
             )
           ],
         ),
@@ -79,13 +85,20 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
+          Icon(Icons.receipt_long_outlined, size: 80, color: isDark ? Colors.grey[800] : Colors.grey[300]),
           const SizedBox(height: 20),
-          const Text("No sales yet", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text("No sales yet", 
+            style: TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black
+            )
+          ),
           const SizedBox(height: 10),
           const Text("Orders for your items will appear here.", style: TextStyle(color: Colors.grey)),
         ],
@@ -94,18 +107,20 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
   }
 
   Widget _buildOrderCard(BuildContext context, OrderEntity order) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.05 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
         ],
+        border: Border.all(color: isDark ? Colors.white10 : Colors.transparent),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,11 +136,11 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
                   children: [
                     Text(
                       "ORDER #${order.id.substring(order.id.length - 6).toUpperCase()}",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black),
                     ),
                     Text(
                       DateFormat('MMM dd, yyyy').format(order.createdAt),
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                      style: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey[500], fontSize: 12),
                     ),
                   ],
                 ),
@@ -139,25 +154,25 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 18,
-                  backgroundColor: Color(0xFFF0F0F0),
-                  child: Icon(Icons.person_outline, size: 18, color: Colors.blueGrey),
+                  backgroundColor: isDark ? Colors.black26 : const Color(0xFFF0F0F0),
+                  child: Icon(Icons.person_outline, size: 18, color: isDark ? Colors.grey[400] : Colors.blueGrey),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Customer Info:", style: TextStyle(color: Colors.grey, fontSize: 11)),
+                      Text("Customer Info:", style: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey, fontSize: 11)),
                       Text(
                         order.userName ?? order.shippingAddress?.fullName ?? "No Name",
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: isDark ? Colors.white : Colors.black),
                       ),
                       if (order.shippingAddress != null)
                         Text(
                           "${order.shippingAddress!.address}, ${order.shippingAddress!.city} (${order.shippingAddress!.phone})",
-                          style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                          style: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[600], fontSize: 11),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -166,7 +181,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
                 ),
                 Text(
                   "Rs. ${order.totalAmount.toStringAsFixed(0)}",
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black),
                 ),
               ],
             ),
@@ -208,7 +223,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
               width: 50,
               height: 50,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Colors.grey[200]),
+              errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[200]),
             ),
           ),
           const SizedBox(width: 12),
@@ -216,7 +231,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
+                Text(item.name, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)),
                 Text("Size: ${item.size} • Qty: ${item.quantity}", style: TextStyle(color: Colors.grey[600], fontSize: 11)),
               ],
             ),
@@ -275,11 +290,12 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
         return const SizedBox.shrink();
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ElevatedButton(
       onPressed: () => _updateStatus(order.id, nextStatus),
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
+        backgroundColor: color == Colors.black && isDark ? Colors.white : color,
+        foregroundColor: color == Colors.black && isDark ? Colors.black : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(vertical: 14),
         elevation: 0,
@@ -289,19 +305,24 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen> {
   }
 
   void _updateStatus(String orderId, String status) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Update Status"),
-        content: Text("Are you sure you want to mark this order as ${status.toUpperCase()}?"),
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        title: Text("Update Status", style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+        content: Text("Are you sure you want to mark this order as ${status.toUpperCase()}?", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCEL")),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("CANCEL", style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]))),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(ordersViewModelProvider.notifier).updateOrderStatus(orderId, status);
             },
-            child: const Text("CONFIRM"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark ? Colors.tealAccent : Colors.black,
+            ),
+            child: Text("CONFIRM", style: TextStyle(color: isDark ? Colors.black : Colors.white)),
           ),
         ],
       ),

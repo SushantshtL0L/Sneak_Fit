@@ -6,6 +6,8 @@ import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
 import 'package:sneak_fit/features/wishlist/presentation/view_model/wishlist_view_model.dart';
+import 'package:sneak_fit/features/item/presentation/widgets/filter_bottom_sheet.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart';
 import 'package:sneak_fit/screens/all_products_screen.dart';
 import 'package:sneak_fit/screens/product_detail_screen_new.dart';
 
@@ -15,6 +17,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemState = ref.watch(itemViewModelProvider);
+    final isDark = ref.watch(themeViewModelProvider).isDarkMode;
 
     return SafeArea(
       child: RefreshIndicator(
@@ -26,11 +29,13 @@ class HomeScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  searchBar(),
-                  const SizedBox(height: 20),
-                  promoBanner(),
+                  searchBar(context, isDark, ref),
                   const SizedBox(height: 24),
-                  sectionHeader(context),
+                  promoBanner(isDark),
+                  const SizedBox(height: 24),
+                  _buildBrandsSection(isDark),
+                  const SizedBox(height: 24),
+                  sectionHeader(context, isDark),
                   const SizedBox(height: 12),
                 ]),
               ),
@@ -44,7 +49,7 @@ class HomeScreen extends ConsumerWidget {
             else
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: productGrid(context, itemState.items, ref),
+                sliver: productGrid(context, itemState.filteredItems, ref, isDark),
               ),
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
@@ -53,84 +58,242 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget searchBar() {
+  Widget searchBar(BuildContext context, bool isDark, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: isDark ? const Color(0xFF1A1A1A) : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(30),
         border: Border(
           bottom: BorderSide(color: Colors.tealAccent.shade400, width: 3),
         ),
       ),
-      child: const TextField(
+      child: TextField(
+        onChanged: (value) => ref.read(itemViewModelProvider.notifier).searchProducts(value),
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
         decoration: InputDecoration(
-          icon: Icon(Icons.search),
-          hintText: "Search",
+          icon: Icon(Icons.search, color: isDark ? Colors.tealAccent : Colors.black54),
+          suffixIcon: IconButton(
+            icon: Icon(Icons.tune, color: isDark ? Colors.tealAccent : Colors.black),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const FilterBottomSheet(),
+              );
+            },
+          ),
+          hintText: "Search your kicks...",
+          hintStyle: TextStyle(color: isDark ? Colors.grey : Colors.grey.shade600),
           border: InputBorder.none,
         ),
       ),
     );
   }
 
-  Widget promoBanner() {
+  Widget promoBanner(bool isDark) {
     return Container(
-      height: 165,
-      padding: const EdgeInsets.all(16),
+      height: 220,
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark 
+            ? [const Color(0xFF23D19D), const Color(0xFF168A68)]
+            : [const Color(0xFF000000), const Color(0xFF2C2C2C)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isDark ? const Color(0xFF23D19D) : Colors.black).withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          )
+        ],
       ),
-      child: Row(
+      child: Stack(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text(
-                  "GoldStar Nepal",
-                  style: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
-                    fontSize: 20,
+          // Background pattern or abstract shapes can go here
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              Icons.bolt,
+              size: 200,
+              color: Colors.white.withValues(alpha: 0.1),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          "NEW RELEASE",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "25% Off Today",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Exclusive GoldStar collection\navailable for limited time.",
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text("Shop Now", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  "25%\nToday Special",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  flex: 2,
+                  child: Transform.rotate(
+                    angle: -0.2,
+                    child: Hero(
+                      tag: 'banner_shoe',
+                      child: Image.asset(
+                        "assets/images/shoe.png",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  "Get discount for every order\nOnly valid today",
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
             ),
-          ),
-          Image.asset(
-            "assets/images/shoe.png",
-            width: 120,
-            fit: BoxFit.contain,
           ),
         ],
       ),
     );
   }
 
-  Widget sectionHeader(BuildContext context) {
+  Widget _buildBrandsSection(bool isDark) {
+    final brands = [
+      {'name': 'Nike', 'initial': 'N', 'color': Colors.black},
+      {'name': 'Adidas', 'initial': 'A', 'color': const Color(0xFF0073B1)},
+      {'name': 'Jordan', 'initial': 'J', 'color': const Color(0xFFE01E37)},
+      {'name': 'Puma', 'initial': 'P', 'color': const Color(0xFF000000)},
+      {'name': 'Reebok', 'initial': 'R', 'color': const Color(0xFF061922)},
+      {'name': 'NB', 'initial': 'NB', 'color': const Color(0xFFADADAD)},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Popular Brands",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+            ),
+            const Text(
+              "See All",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 90,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: brands.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 20),
+            itemBuilder: (context, index) {
+              final brand = brands[index];
+              return Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
+                      shape: BoxShape.circle,
+                      border: Border.all(color: isDark ? Colors.white10 : Colors.grey[200]!),
+                    ),
+                    child: Center(
+                      child: Text(
+                        brand['initial'] as String,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : (brand['color'] as Color),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    brand['name'] as String,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget sectionHeader(BuildContext context, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
+        Text(
           "Most Popular",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18, 
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
         GestureDetector(
           onTap: () {
@@ -150,7 +313,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget productGrid(BuildContext context, List<ItemEntity> items, WidgetRef ref) {
+  Widget productGrid(BuildContext context, List<ItemEntity> items, WidgetRef ref, bool isDark) {
     return SliverGrid(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
@@ -162,6 +325,7 @@ class HomeScreen extends ConsumerWidget {
             price: "Rs ${item.price.toInt()}",
             item: item,
             ref: ref,
+            isDark: isDark,
           );
         },
         childCount: items.length,
@@ -182,6 +346,7 @@ class HomeScreen extends ConsumerWidget {
     required String price,
     required ItemEntity item,
     required WidgetRef ref,
+    required bool isDark,
   }) {
     // Resolve image URL
     final String imageUrl = item.media != null 
@@ -202,8 +367,9 @@ class HomeScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: isDark ? const Color(0xFF1A1A1A) : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(16),
+          border: isDark ? Border.all(color: Colors.white10) : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,10 +409,24 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              brand,
+              item.brand?.toUpperCase() ?? "SNEAKFIT",
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.tealAccent : Colors.grey,
+                  letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item.itemName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: isDark ? Colors.white : Colors.black,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -263,15 +443,27 @@ class HomeScreen extends ConsumerWidget {
                 Text(rating, style: const TextStyle(fontSize: 12)),
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: item.condition == ItemCondition.newCondition
+                        ? (isDark ? Colors.blueAccent.withValues(alpha: 0.15) : Colors.blue[50])
+                        : (isDark ? const Color(0xFF00B894).withValues(alpha: 0.15) : const Color(0xFFE0F7F2)),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: item.condition == ItemCondition.newCondition
+                          ? (isDark ? Colors.blueAccent.withValues(alpha: 0.3) : Colors.blue[200]!)
+                          : (isDark ? const Color(0xFF00B894).withValues(alpha: 0.3) : const Color(0xFFB9EFE5)),
+                    ),
                   ),
                   child: Text(
-                    item.condition.name.toUpperCase(),
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                    item.condition == ItemCondition.newCondition ? "NEW" : "THRIFT",
+                    style: TextStyle(
+                      fontSize: 9, 
+                      fontWeight: FontWeight.bold,
+                      color: item.condition == ItemCondition.newCondition
+                          ? (isDark ? Colors.blueAccent : Colors.blue[700])
+                          : const Color(0xFF00B894),
+                    ),
                   ),
                 ),
               ],
@@ -279,9 +471,10 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 6),
             Text(
               price,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
+                color: isDark ? Colors.tealAccent : Colors.black,
               ),
             ),
           ],

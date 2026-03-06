@@ -24,18 +24,22 @@ class _SellerDashboardHomeState extends ConsumerState<SellerDashboardHome> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text("Send Announcement"),
+              title: Text("Send Announcement", style: TextStyle(color: isDark ? Colors.white : Colors.black)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: titleController,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       labelText: "Title (e.g. Flash Sale!)",
+                      labelStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[700]),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: isDark ? Colors.black26 : Colors.grey[100],
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -46,10 +50,12 @@ class _SellerDashboardHomeState extends ConsumerState<SellerDashboardHome> {
                   TextField(
                     controller: messageController,
                     maxLines: 3,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       labelText: "Message",
+                      labelStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[700]),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: isDark ? Colors.black26 : Colors.grey[100],
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -59,10 +65,13 @@ class _SellerDashboardHomeState extends ConsumerState<SellerDashboardHome> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: selectedType,
+                    dropdownColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       labelText: "Type",
+                      labelStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[700]),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: isDark ? Colors.black26 : Colors.grey[100],
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -83,12 +92,12 @@ class _SellerDashboardHomeState extends ConsumerState<SellerDashboardHome> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
+                  child: Text("Cancel", style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600])),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
+                    backgroundColor: isDark ? Colors.tealAccent : Colors.black,
+                    foregroundColor: isDark ? Colors.black : Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
@@ -120,28 +129,28 @@ class _SellerDashboardHomeState extends ConsumerState<SellerDashboardHome> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
                 Text(
                   "Seller Dashboard",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                SizedBox(width: 8),
-                Icon(Icons.verified, color: Colors.indigo, size: 24),
+                const SizedBox(width: 8),
+                const Icon(Icons.verified, color: Colors.indigo, size: 24),
               ],
             ),
             const SizedBox(height: 32),
@@ -193,21 +202,23 @@ class _SellerDashboardHomeState extends ConsumerState<SellerDashboardHome> {
   }
 
   Widget _sellerActionCard(String title, String subtitle, IconData icon, Color color, {required VoidCallback onTap}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.08),
+              color: color.withValues(alpha: isDark ? 0.05 : 0.08),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
           ],
+          border: Border.all(color: isDark ? Colors.white12 : Colors.transparent),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,16 +235,16 @@ class _SellerDashboardHomeState extends ConsumerState<SellerDashboardHome> {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.black87,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: TextStyle(color: Colors.grey[500], fontSize: 11),
+              style: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey[500], fontSize: 11),
               maxLines: 2,
             ),
           ],

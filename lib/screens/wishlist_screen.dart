@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/features/wishlist/presentation/view_model/wishlist_view_model.dart';
 import 'package:sneak_fit/screens/product_detail_screen_new.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart';
 
 class WishlistScreen extends ConsumerWidget {
   const WishlistScreen({super.key});
@@ -11,17 +12,18 @@ class WishlistScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wishlistItems = ref.watch(wishlistViewModelProvider).items;
+    final isDark = ref.watch(themeViewModelProvider).isDarkMode;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        title: const Text("My Wishlist", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-        backgroundColor: Colors.white,
+        title: Text("My Wishlist", style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+        backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
       body: wishlistItems.isEmpty
-          ? _buildEmptyState()
+          ? _buildEmptyState(isDark)
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: GridView.builder(
@@ -47,9 +49,9 @@ class WishlistScreen extends ConsumerWidget {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey[50],
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.grey[200]!),
+                        border: Border.all(color: isDark ? Colors.white10 : Colors.grey[200]!),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,7 +64,7 @@ class WishlistScreen extends ConsumerWidget {
                                       ? CachedNetworkImage(
                                           imageUrl: imageUrl,
                                           fit: BoxFit.contain,
-                                          placeholder: (context, url) => const CircularProgressIndicator(color: Colors.black),
+                                          placeholder: (context, url) => CircularProgressIndicator(color: isDark ? Colors.white : Colors.black),
                                           errorWidget: (context, url, error) => const Icon(Icons.error),
                                         )
                                       : const Icon(Icons.image, size: 50, color: Colors.grey),
@@ -72,10 +74,10 @@ class WishlistScreen extends ConsumerWidget {
                                   right: 10,
                                   child: GestureDetector(
                                     onTap: () => ref.read(wishlistViewModelProvider.notifier).toggleWishlist(item),
-                                    child: const CircleAvatar(
+                                    child: CircleAvatar(
                                       radius: 15,
-                                      backgroundColor: Colors.white,
-                                      child: Icon(Icons.favorite, size: 16, color: Colors.red),
+                                      backgroundColor: isDark ? Colors.black45 : Colors.white,
+                                      child: const Icon(Icons.favorite, size: 16, color: Colors.red),
                                     ),
                                   ),
                                 ),
@@ -89,14 +91,14 @@ class WishlistScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   item.itemName,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   "Rs. ${item.price.toInt()}",
-                                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: isDark ? const Color(0xFF23D19D) : Colors.black),
                                 ),
                               ],
                             ),
@@ -111,16 +113,16 @@ class WishlistScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.favorite_border, size: 80, color: Colors.grey[300]),
+          Icon(Icons.favorite_border, size: 80, color: isDark ? Colors.grey[800] : Colors.grey[300]),
           const SizedBox(height: 20),
-          const Text("Your wishlist is empty", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text("Your wishlist is empty", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
           const SizedBox(height: 10),
-          const Text("Save your favorite sneakers for later!", style: TextStyle(color: Colors.grey)),
+          Text("Save your favorite sneakers for later!", style: TextStyle(color: isDark ? Colors.white70 : Colors.grey)),
         ],
       ),
     );

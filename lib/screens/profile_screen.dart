@@ -1,13 +1,17 @@
-import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/core/services/biometric_service.dart';
 import 'package:sneak_fit/features/auth/presentation/state/auth_state.dart';
 import 'package:sneak_fit/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:sneak_fit/features/notification/presentation/pages/notification_screen.dart';
 import 'package:sneak_fit/features/sensors/presentation/pages/sensor_lab_screen.dart';
+import 'package:sneak_fit/features/auth/presentation/pages/edit_profile_screen.dart';
+import 'package:sneak_fit/features/auth/presentation/pages/change_password_screen.dart';
+import 'package:sneak_fit/features/item/presentation/pages/my_items_page.dart';
+import 'package:sneak_fit/features/item/presentation/pages/seller_analytics_screen.dart';
 import 'package:sneak_fit/screens/orders_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -18,12 +22,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _oldPasswordController = TextEditingController();
-  final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
-  File? _image;
   bool _biometricEnabled = false;
 
   @override
@@ -31,17 +29,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.initState();
     // Fetch user profile when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(authViewModelProvider.notifier).getUserProfile();
+      final user = ref.read(authViewModelProvider).authEntity;
+      if (user == null) {
+        ref.read(authViewModelProvider.notifier).getUserProfile();
+      }
     });
     _loadBiometricPreference();
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _oldPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -75,308 +72,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
 
-  Future<void> _pickImage(ImageSource source, {StateSetter? setDialogState}) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      if (mounted) {
-        setState(() {
-          _image = File(pickedFile.path);
-        });
-        if (setDialogState != null) {
-          setDialogState(() {});
-        }
-      }
-    }
-  }
 
-  void _showImagePicker(BuildContext context, {StateSetter? setDialogState}) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (builder) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(25),
-              topRight: Radius.circular(25),
-            ),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Choose Profile Photo",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _pickerOption(
-                    context,
-                    icon: Icons.image,
-                    label: "Gallery",
-                    color: Colors.blue,
-                    onTap: () => _pickImage(ImageSource.gallery, setDialogState: setDialogState),
-                  ),
-                  _pickerOption(
-                    context,
-                    icon: Icons.camera_alt,
-                    label: "Camera",
-                    color: Colors.red,
-                    onTap: () => _pickImage(ImageSource.camera, setDialogState: setDialogState),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
-  Widget _pickerOption(BuildContext context,
-      {required IconData icon,
-      required String label,
-      required Color color,
-      required VoidCallback onTap}) {
-    return InkWell(
-      onTap: () {
-        onTap();
-        Navigator.pop(context);
-      },
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 30, color: color),
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
 
-  void _showEditProfileDialog() {
-    final user = ref.read(authViewModelProvider).authEntity;
-    _nameController.text = user?.name ?? user?.userName ?? '';
-    _image = null; // Reset picked image when opening dialog
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Consumer(
-          builder: (context, ref, child) {
-            final currentUser = ref.watch(authViewModelProvider).authEntity;
-            final String? networkImageUrl = currentUser?.profileImage != null
-                ? "${ApiEndpoints.baseImageUrl}${currentUser?.profileImage}"
-                : null;
-
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text("Edit Profile"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatefulBuilder(
-                    builder: (context, setDialogState) {
-                      return Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: _image != null
-                                ? FileImage(_image!)
-                                : (networkImageUrl != null
-                                    ? NetworkImage(networkImageUrl)
-                                    : null),
-                            child: (_image == null && networkImageUrl == null)
-                                ? const Icon(Icons.person,
-                                    size: 50, color: Colors.grey)
-                                : null,
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: () => _showImagePicker(context, setDialogState: setDialogState),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Colors.black,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.camera_alt,
-                                    size: 18, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: "Name",
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () {
-                    ref.read(authViewModelProvider.notifier).updateProfile(
-                          _nameController.text.trim(),
-                          _image?.path,
-                        );
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Save Changes"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showChangePasswordDialog() {
-    _oldPasswordController.clear();
-    _newPasswordController.clear();
-    _confirmPasswordController.clear();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text("Change Password", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _passwordField(_oldPasswordController, "Current Password"),
-                const SizedBox(height: 16),
-                _passwordField(_newPasswordController, "New Password"),
-                const SizedBox(height: 16),
-                _passwordField(_confirmPasswordController, "Confirm New Password"),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              onPressed: () async {
-                final oldPass = _oldPasswordController.text;
-                final newPass = _newPasswordController.text;
-                final confirmPass = _confirmPasswordController.text;
-
-                if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
-                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("All fields are required")),
-                  );
-                  return;
-                }
-
-                if (newPass != confirmPass) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("New passwords do not match")),
-                  );
-                  return;
-                }
-
-                if (newPass.length < 6) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Password must be at least 6 characters")),
-                  );
-                  return;
-                }
-
-                final success = await ref.read(authViewModelProvider.notifier).changePassword(
-                  oldPass,
-                  newPass,
-                );
-
-                if (context.mounted) {
-                  if (success) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Password changed successfully!"),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else {
-                    final error = ref.read(authViewModelProvider).errorMessage;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(error ?? "Failed to change password"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text("Change Password"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _passwordField(TextEditingController controller, String label) {
-    return TextField(
-      controller: controller,
-      obscureText: true,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: Colors.grey[100],
-        prefixIcon: const Icon(Icons.lock_outline, size: 20),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
 
 
   @override
@@ -384,8 +82,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final authState = ref.watch(authViewModelProvider);
     final user = authState.authEntity;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
       body: authState.status == AuthStatus.loading && user == null
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
@@ -435,7 +135,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(height: 12),
                       _menuItem(Icons.lock_outline_rounded, 'Change Password',
-                          Colors.redAccent, onTap: _showChangePasswordDialog),
+                          Colors.redAccent, onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                        );
+                      }),
                       _biometricTile(),
                       _menuItem(Icons.delete_outline_rounded, 'Delete Account',
                           Colors.red, onTap: () {
@@ -451,6 +156,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
+                      
+                      // Seller Side Check
+                      if (user?.role == 'seller') ...[
+                        _menuItem(
+                          Icons.storefront_outlined,
+                          'Seller Dashboard',
+                          Colors.teal,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const MyItemsPage()),
+                            );
+                          },
+                        ),
+                        _menuItem(
+                          Icons.analytics_outlined,
+                          'Sales Analytics',
+                          Colors.indigo,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const SellerAnalyticsScreen()),
+                            );
+                          },
+                        ),
+                      ],
+
                       _menuItem(
                         Icons.sensors_outlined,
                         'Sensor Lab',
@@ -512,14 +244,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ],
               ),
-              child: CircleAvatar(
-                radius: 65,
-                backgroundColor: Colors.grey[200],
-                backgroundImage:
-                    imageUrl != null ? NetworkImage(imageUrl) : null,
-                child: imageUrl == null
-                    ? const Icon(Icons.person, size: 70, color: Colors.grey)
-                    : null,
+              child: ClipOval(
+                child: imageUrl != null
+                    ? Image(
+                        image: CachedNetworkImageProvider(imageUrl),
+                        width: 130,
+                        height: 130,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.person, size: 70, color: Colors.grey),
+                      )
+                    : Container(
+                        width: 130,
+                        height: 130,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.person, size: 70, color: Colors.grey),
+                      ),
               ),
             ),
             const SizedBox(height: 16),
@@ -539,9 +279,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: Colors.white.withValues(alpha: 0.7),
               ),
             ),
+            const SizedBox(height: 12),
+            // Role Badge
+            if (user?.role != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: user?.role == 'seller' ? Colors.teal : Colors.blue,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  user?.role == 'seller' ? "Seller Account" : "Buyer Account",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _showEditProfileDialog,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
@@ -567,10 +330,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _menuItem(IconData icon, String title, Color color, {VoidCallback? onTap}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -590,18 +354,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Icon(icon, color: color, size: 22),
         ),
         title: Text(title,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+            style: TextStyle(
+                fontWeight: FontWeight.w500, 
+                fontSize: 15,
+                color: isDark ? Colors.white : Colors.black,
+            )),
+        trailing: Icon(Icons.arrow_forward_ios, size: 14, color: isDark ? Colors.grey[600] : Colors.grey),
         onTap: onTap ?? () {},
       ),
     );
   }
 
   Widget _biometricTile() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -624,9 +393,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             size: 22,
           ),
         ),
-        title: const Text(
+        title: Text(
           'Fingerprint Login',
-          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+          style: TextStyle(
+              fontWeight: FontWeight.w500, 
+              fontSize: 15,
+              color: isDark ? Colors.white : Colors.black,
+          ),
         ),
         subtitle: Text(
           _biometricEnabled ? 'Enabled — tap to disable' : 'Enable quick login with fingerprint',
