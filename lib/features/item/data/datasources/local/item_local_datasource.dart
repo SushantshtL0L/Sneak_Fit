@@ -60,4 +60,22 @@ class ItemLocalDatasource {
       return [];
     }
   }
+
+  // Delete all items
+  Future<bool> deleteAllItems() async {
+    try {
+      await _hiveService.clearItemBox();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Save all items (bulk)
+  Future<void> saveAllItems(List<ItemHiveModel> items) async {
+    for (var item in items) {
+      await _hiveService.createItem(item);
+    }
+  }
 }
+

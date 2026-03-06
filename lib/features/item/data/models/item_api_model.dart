@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:sneak_fit/features/item/data/models/item_hive_model.dart';
 import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 
 class ItemApiModel extends Equatable {
@@ -14,6 +15,7 @@ class ItemApiModel extends Equatable {
   final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
 
   const ItemApiModel({
     this.id,
@@ -67,8 +69,25 @@ class ItemApiModel extends Equatable {
     };
   }
 
+  // Convert API model to Hive Model
+  ItemHiveModel toHiveModel() {
+    return ItemHiveModel(
+      itemId: id ?? '',
+      itemName: name ?? 'Untitled',
+      condition: condition ?? 'new',
+      price: price ?? 0.0,
+      description: description,
+      media: image,
+      mediaType: 'image',
+      status: status,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
   // Convert API model to Entity
   ItemEntity toEntity() {
+
     return ItemEntity(
       itemId: id ?? '',
       itemName: name ?? 'Untitled',

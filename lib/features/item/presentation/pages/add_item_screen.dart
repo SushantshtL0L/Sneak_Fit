@@ -187,22 +187,22 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final itemState = ref.watch(itemViewModelProvider);
     final bool isLoading = itemState.status == ItemStatus.loading;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
         title: Text(
           widget.item != null ? "Edit Sneaks" : "Sell Your Sneaks",
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -218,9 +218,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   width: double.infinity,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: isDark ? Colors.black26 : Colors.grey[100],
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey[300]!, width: 2),
+                    border: Border.all(color: isDark ? Colors.white12 : Colors.grey[300]!, width: 2),
                   ),
                   child: _image != null
                       ? ClipRRect(
@@ -239,10 +239,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.add_a_photo_outlined,
-                                    size: 50, color: Colors.grey[400]),
+                                    size: 50, color: isDark ? Colors.grey[700] : Colors.grey[400]),
                                 const SizedBox(height: 10),
                                 Text(widget.item != null ? "Change Image" : "Add Product Image",
-                                    style: TextStyle(color: Colors.grey[600])),
+                                    style: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey[600])),
                               ],
                             )),
                 ),
@@ -251,15 +251,17 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             const SizedBox(height: 30),
 
             // Product Name
-            const Text("Product Name",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text("Product Name",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 10),
             TextField(
               controller: _nameController,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: "e.g. Nike Air Jordan 1",
+                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                 filled: true,
-                fillColor: Colors.grey[50],
+                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -269,15 +271,17 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             const SizedBox(height: 20),
 
             // Brand field
-            const Text("Brand",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text("Brand",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 10),
             TextField(
               controller: _brandController,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: "e.g. Nike, Adidas, Puma",
+                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                 filled: true,
-                fillColor: Colors.grey[50],
+                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -292,15 +296,17 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Size",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text("Size",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _sizeController,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
                         decoration: InputDecoration(
                           hintText: "e.g. 42",
+                          hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                           filled: true,
-                          fillColor: Colors.grey[50],
+                          fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -315,15 +321,17 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Color",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text("Color",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _colorController,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
                         decoration: InputDecoration(
                           hintText: "e.g. Black",
+                          hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                           filled: true,
-                          fillColor: Colors.grey[50],
+                          fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -338,16 +346,18 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             const SizedBox(height: 20),
 
             // Description field
-            const Text("Description",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text("Description",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 10),
             TextField(
               controller: _descriptionController,
               maxLines: 3,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: "Tell us more about the sneakers...",
+                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                 filled: true,
-                fillColor: Colors.grey[50],
+                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -357,8 +367,8 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             const SizedBox(height: 20),
 
             // Condition Selector (Thrift vs New)
-            const Text("Condition",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text("Condition",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -368,15 +378,15 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       decoration: BoxDecoration(
-                        color: _condition == 'New' ? Colors.black : Colors.white,
+                        color: _condition == 'New' ? (isDark ? Colors.tealAccent : Colors.black) : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.black),
+                        border: Border.all(color: isDark ? Colors.tealAccent : Colors.black),
                       ),
                       child: Center(
                         child: Text(
                           "New",
                           style: TextStyle(
-                            color: _condition == 'New' ? Colors.white : Colors.black,
+                            color: _condition == 'New' ? (isDark ? Colors.black : Colors.white) : (isDark ? Colors.tealAccent : Colors.black),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -391,15 +401,15 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       decoration: BoxDecoration(
-                        color: _condition == 'Thrift' ? Colors.black : Colors.white,
+                        color: _condition == 'Thrift' ? (isDark ? Colors.tealAccent : Colors.black) : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.black),
+                        border: Border.all(color: isDark ? Colors.tealAccent : Colors.black),
                       ),
                       child: Center(
                         child: Text(
                           "Thrift",
                           style: TextStyle(
-                            color: _condition == 'Thrift' ? Colors.white : Colors.black,
+                            color: _condition == 'Thrift' ? (isDark ? Colors.black : Colors.white) : (isDark ? Colors.tealAccent : Colors.black),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -412,16 +422,18 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
             const SizedBox(height: 20),
 
             // Price
-            const Text("Price (Rs.)",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text("Price (Rs.)",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 10),
             TextField(
               controller: _priceController,
               keyboardType: TextInputType.number,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: "Enter amount",
+                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                 filled: true,
-                fillColor: Colors.grey[50],
+                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -437,14 +449,15 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               child: ElevatedButton(
                 onPressed: isLoading ? null : _saveProduct,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark ? Colors.tealAccent : Colors.black,
+                  foregroundColor: isDark ? Colors.black : Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
+                  elevation: 0,
                 ),
                 child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? CircularProgressIndicator(color: isDark ? Colors.black : Colors.white)
                     : Text(
                         widget.item != null ? "Update Listing" : "Post Listing",
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

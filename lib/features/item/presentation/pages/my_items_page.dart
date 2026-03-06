@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sneak_fit/core/api/api_endpoints.dart';
 import 'package:sneak_fit/core/utils/my_snack_bar.dart';
+import 'package:sneak_fit/features/item/domain/entities/item_entity.dart';
 import 'package:sneak_fit/features/item/presentation/pages/add_item_screen.dart';
 import 'package:sneak_fit/features/item/presentation/state/item_state.dart';
 import 'package:sneak_fit/features/item/presentation/view_model/item_viewmodel.dart';
@@ -67,16 +69,23 @@ class _MyItemsPageState extends ConsumerState<MyItemsPage> {
     final itemState = ref.watch(itemViewModelProvider);
     final items = itemState.items;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text("My Products", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-        backgroundColor: Colors.white,
+        title: Text("My Products", 
+          style: TextStyle(
+            fontWeight: FontWeight.bold, 
+            color: isDark ? Colors.white : Colors.black
+          )
+        ),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       ),
       body: itemState.status == ItemStatus.loading && items.isEmpty
-          ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          ? Center(child: CircularProgressIndicator(color: isDark ? Colors.white : Colors.black))
           : items.isEmpty
               ? _buildEmptyState()
               : RefreshIndicator(
@@ -90,9 +99,17 @@ class _MyItemsPageState extends ConsumerState<MyItemsPage> {
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.grey[50],
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey[200]!),
+                          border: Border.all(color: isDark ? Colors.white10 : Colors.grey[200]!),
+                          boxShadow: [
+                            if (!isDark)
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                          ],
                         ),
                         child: Row(
                           children: [
@@ -102,12 +119,13 @@ class _MyItemsPageState extends ConsumerState<MyItemsPage> {
                               child: Container(
                                 width: 80,
                                 height: 80,
-                                color: Colors.grey[200],
+                                color: isDark ? Colors.black26 : Colors.grey[200],
                                 child: item.media != null
-                                    ? Image.network(
-                                        "${ApiEndpoints.baseImageUrl}${item.media}",
+                                    ? CachedNetworkImage(
+                                        imageUrl: "${ApiEndpoints.baseImageUrl}${item.media}",
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
+                                        placeholder: (context, url) => Container(color: isDark ? Colors.black26 : Colors.grey[200]),
+                                        errorWidget: (context, url, error) =>
                                             const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
                                       )
                                     : const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
@@ -121,25 +139,45 @@ class _MyItemsPageState extends ConsumerState<MyItemsPage> {
                                 children: [
                                   Text(
                                     item.itemName,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold, 
+                                      fontSize: 16,
+                                      color: isDark ? Colors.white : Colors.black,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     "Rs. ${item.price}",
-                                    style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white70 : Colors.black87, 
+                                      fontWeight: FontWeight.w600
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.black,
+                                      color: item.condition == ItemCondition.newCondition
+                                          ? (isDark ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.blue[100])
+                                          : (isDark ? const Color(0xFF00B894).withValues(alpha: 0.2) : const Color(0xFFE0F7F2)),
                                       borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: item.condition == ItemCondition.newCondition
+                                            ? Colors.blue.withValues(alpha: 0.5)
+                                            : const Color(0xFF00B894).withValues(alpha: 0.5),
+                                      ),
                                     ),
                                     child: Text(
-                                      item.condition.toString().split('.').last.toUpperCase(),
-                                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                      item.condition == ItemCondition.newCondition ? "NEW" : "THRIFT",
+                                      style: TextStyle(
+                                        color: item.condition == ItemCondition.newCondition
+                                            ? (isDark ? Colors.blueAccent : Colors.blue[700])
+                                            : const Color(0xFF00B894),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -180,9 +218,15 @@ class _MyItemsPageState extends ConsumerState<MyItemsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey[300]),
+          Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 20),
-          const Text("No products found", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text("No products found", 
+            style: TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87
+            )
+          ),
           const SizedBox(height: 10),
           const Text("Items you add for sale will appear here.", style: TextStyle(color: Colors.grey)),
         ],
