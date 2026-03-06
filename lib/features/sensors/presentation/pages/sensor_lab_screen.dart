@@ -29,7 +29,7 @@ class SensorLabScreen extends ConsumerWidget {
                 children: [
                   SwitchListTile(
                     title: const Text("Enable Smart Theme"),
-                    subtitle: const Text("Switches to Dark Mode in low light (< 10 lux)"),
+                    subtitle: const Text("Stays Bright above 20 Lux"),
                     value: themeState.isAutoThemeEnabled,
                     onChanged: (val) => ref.read(themeViewModelProvider.notifier).toggleAutoTheme(),
                   ),
@@ -38,6 +38,34 @@ class SensorLabScreen extends ConsumerWidget {
                     "Current Light: ${sensorState.lux.toStringAsFixed(0)} Lux",
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        sensorState.isProximityNear ? Icons.front_hand : Icons.visibility,
+                        size: 16,
+                        color: sensorState.isProximityNear ? Colors.red : Colors.green,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        sensorState.isProximityNear ? "HAND DETECTED! (Dark Mode)" : "No Hand Detected",
+                        style: TextStyle(
+                          color: sensorState.isProximityNear ? Colors.red : Colors.green,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (sensorState.lux == 0 && themeState.isAutoThemeEnabled && !sensorState.isProximityNear)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        "Waiting for light sensor data...",
+                        style: TextStyle(color: Colors.orange, fontSize: 12),
+                      ),
+                    ),
                 ],
               ),
             ),
