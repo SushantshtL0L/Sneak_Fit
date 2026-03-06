@@ -180,9 +180,45 @@ class AuthRepositoryImpl implements IAuthRepository {
         ),
       );
     } catch (e) {
-      return Left(
-        ApiFailure(message: 'Failed to fetch user profile: ${e.toString()}'),
-      );
+      // Fallback to local session data if remote fails (Offline mode)
+      try {
+        final userSession = await sessionService.getUserSession();
+        if (userSession != null) {
+          return Right(
+            AuthEntity(
+              userId: userSession.userId,
+              email: userSession.email,
+              userName: userSession.username,
+              role: userSession.role,
+              profileImage: userSession.profilePicture,
+            ),
+          );
+        }
+        return Left(ApiFailure(message: 'Failed to fetch user profile: ${e.toString()}'));
+      } catch (localError) {
+        return Left(ApiFailure(message: 'Failed to fetch user profile: ${e.toString()}'));
+      }
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> getLocalProfile() async {
+    try {
+      final userSession = await sessionService.getUserSession();
+      if (userSession != null) {
+        return Right(
+          AuthEntity(
+            userId: userSession.userId,
+            email: userSession.email,
+            userName: userSession.username,
+            role: userSession.role,
+            profileImage: userSession.profilePicture,
+          ),
+        );
+      }
+      return const Left(ApiFailure(message: 'No local session found'));
+    } catch (e) {
+      return Left(ApiFailure(message: 'Failed to access local session: $e'));
     }
   }
 
