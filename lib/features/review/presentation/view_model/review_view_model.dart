@@ -45,19 +45,33 @@ class ReviewViewModel extends StateNotifier<ReviewState> {
 
   ReviewViewModel(this._apiClient, this._hiveService) : super(ReviewState());
 
+  // Memory cache to make UI instant during session
+  final Map<String, List<ReviewEntity>> _memoryCache = {};
+  final Map<String, DateTime> _lastFetched = {};
+
   Future<void> fetchProductReviews(String productId) async {
-    // Start with a clean slate for error but keep existing reviews to prevent flickering
+    // 1. Check memory cache first (Instant)
+    if (_memoryCache.containsKey(productId)) {
+      state = state.copyWith(reviews: _memoryCache[productId], isLoading: false);
+      
+      // Throttle: If we fetched this in the last 60 seconds, don't hit the server
+      final lastFetch = _lastFetched[productId];
+      if (lastFetch != null && DateTime.now().difference(lastFetch).inSeconds < 60) {
+        return;
+      }
+    }
+
     state = state.copyWith(error: null);
 
-    // 1. Load from local first
+    // 2. Load from local/Hive if not in memory or to verify
     final localReviewsData = await _hiveService.getReviews(productId);
     if (localReviewsData != null && localReviewsData.isNotEmpty) {
       final localReviews = localReviewsData.map((json) => ReviewEntity.fromJson(json)).toList();
-      // Set reviews and isLoading: false immediately so UI shows them
+      _memoryCache[productId] = localReviews;
       state = state.copyWith(reviews: localReviews, isLoading: false);
-    } else {
-      // Only show global loading spinner if we have NO local data
-      state = state.copyWith(isLoading: true);
+    } else if (!_memoryCache.containsKey(productId)) {
+      // Clear old reviews and show loading ONLY if we have NOTHING in memory
+      state = state.copyWith(reviews: [], isLoading: true);
     }
 
     try {
@@ -65,16 +79,18 @@ class ReviewViewModel extends StateNotifier<ReviewState> {
       if (response.data['success'] == true) {
         final List<dynamic> data = response.data['data'];
         
-        // 2. Save to Hive for offline use
+        // 3. Save to Hive and Memory
         await _hiveService.saveReviews(productId, List<Map<String, dynamic>>.from(data));
         
         final reviews = data.map((json) => ReviewEntity.fromJson(json)).toList();
+        _memoryCache[productId] = reviews;
+        _lastFetched[productId] = DateTime.now();
+        
         state = state.copyWith(reviews: reviews, isLoading: false);
       } else {
         state = state.copyWith(isLoading: false, error: response.data['message']);
       }
     } catch (e) {
-      // 3. Just stop loading if network fails; local data (if any) is already showing
       state = state.copyWith(isLoading: false);
     }
   }

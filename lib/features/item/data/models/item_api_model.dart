@@ -82,6 +82,9 @@ class ItemApiModel extends Equatable {
       status: status,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      brand: brand,
+      size: size,
+      color: color,
     );
   }
 

@@ -36,6 +36,15 @@ class ItemHiveModel extends HiveObject {
   @HiveField(9)
   final DateTime? updatedAt;
 
+  @HiveField(10)
+  final String? brand;
+
+  @HiveField(11)
+  final String? size;
+
+  @HiveField(12)
+  final String? color;
+
   ItemHiveModel({
     String? itemId,
     required this.itemName,
@@ -47,6 +56,9 @@ class ItemHiveModel extends HiveObject {
     String? status,
     this.createdAt,
     this.updatedAt,
+    this.brand,
+    this.size,
+    this.color,
   })  : itemId = itemId ?? const Uuid().v4(),
         status = status ?? 'available';
 
@@ -62,6 +74,9 @@ class ItemHiveModel extends HiveObject {
       status: entity.status,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      brand: entity.brand,
+      size: entity.size,
+      color: entity.color,
     );
   }
 
@@ -77,6 +92,9 @@ class ItemHiveModel extends HiveObject {
       media: media,
       mediaType: mediaType,
       status: status,
+      brand: brand,
+      size: size,
+      color: color,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

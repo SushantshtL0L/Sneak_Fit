@@ -42,7 +42,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source);
+    // Compress before upload: camera photos can be 3-5 MB+ which exceeds
+    // the timeout window on a local Wi-Fi connection.
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 70,      // 70 % JPEG quality ≈ 5-10× smaller
+      maxWidth: 800,         // cap width so the file is also physically smaller
+      maxHeight: 800,
+    );
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_endpoints.dart';
@@ -57,7 +58,7 @@ class NotificationViewModel extends StateNotifier<NotificationState> {
         state = state.copyWith(isLoading: false, error: response.data['message']);
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _friendlyError(e));
     }
   }
 
@@ -78,7 +79,7 @@ class NotificationViewModel extends StateNotifier<NotificationState> {
         state = state.copyWith(isLoading: false, error: response.data['message']);
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _friendlyError(e));
     }
   }
 
@@ -102,7 +103,7 @@ class NotificationViewModel extends StateNotifier<NotificationState> {
         );
       }
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: _friendlyError(e));
     }
   }
 
@@ -117,8 +118,28 @@ class NotificationViewModel extends StateNotifier<NotificationState> {
         );
       }
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: _friendlyError(e));
     }
+  }
+
+  String _friendlyError(Object e) {
+    if (e is DioException) {
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'Server not reachable. Make sure the backend is running and your phone is on the same Wi-Fi network.';
+        case DioExceptionType.connectionError:
+          return 'No connection to server. Check if the server is running at ${ApiEndpoints.compIpAddress}:5050.';
+        case DioExceptionType.badResponse:
+          final status = e.response?.statusCode;
+          final msg = e.response?.data?['message'];
+          return msg != null ? '$msg (HTTP $status)' : 'Server error (HTTP $status)';
+        default:
+          return e.message ?? 'Something went wrong. Please try again.';
+      }
+    }
+    return e.toString();
   }
 }
 
