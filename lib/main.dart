@@ -16,11 +16,10 @@ import 'package:sneak_fit/features/sensors/presentation/view_model/sensor_view_m
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive
+  // Initialize Hive+++++++++
   final hiveService = HiveService();
   await hiveService.init();
 
