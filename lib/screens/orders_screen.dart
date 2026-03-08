@@ -193,20 +193,25 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Order ID: #${order.id.substring(order.id.length > 6 ? order.id.length - 6 : 0).toUpperCase()}",
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      DateFormat('MMM dd, yyyy • hh:mm a').format(order.createdAt),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Order #${order.id.substring(order.id.length > 6 ? order.id.length - 6 : 0).toUpperCase()}",
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('MMM dd, yyyy • hh:mm a').format(order.createdAt),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 _buildStatusBadge(order.status),
               ],
             ),
@@ -328,10 +333,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
                         _infoTag("Size ${item.size}", Colors.blue),
-                        const SizedBox(width: 8),
                         _infoTag("Qty ${item.quantity}", Colors.grey),
                       ],
                     ),

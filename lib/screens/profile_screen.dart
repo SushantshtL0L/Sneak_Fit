@@ -1,18 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sneak_fit/core/theme/theme_provider.dart';
 
 import 'package:sneak_fit/core/api/api_endpoints.dart';
-import 'package:sneak_fit/core/services/biometric_service.dart';
 import 'package:sneak_fit/features/auth/presentation/state/auth_state.dart';
 import 'package:sneak_fit/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:sneak_fit/features/notification/presentation/pages/notification_screen.dart';
-import 'package:sneak_fit/features/sensors/presentation/pages/sensor_lab_screen.dart';
 import 'package:sneak_fit/features/auth/presentation/pages/edit_profile_screen.dart';
-import 'package:sneak_fit/features/auth/presentation/pages/change_password_screen.dart';
 import 'package:sneak_fit/features/item/presentation/pages/my_items_page.dart';
 import 'package:sneak_fit/features/item/presentation/pages/seller_analytics_screen.dart';
 import 'package:sneak_fit/screens/orders_screen.dart';
+import 'package:sneak_fit/screens/experimental_features_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -22,55 +21,20 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  bool _biometricEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    // Fetch user profile when screen loads
+    // Fetch user profile when screen loads to ensure we have current role/data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = ref.read(authViewModelProvider).authEntity;
-      if (user == null) {
-        ref.read(authViewModelProvider.notifier).getUserProfile();
-      }
+      ref.read(authViewModelProvider.notifier).getUserProfile();
     });
-    _loadBiometricPreference();
   }
 
   @override
   void dispose() {
     super.dispose();
   }
-
-  Future<void> _loadBiometricPreference() async {
-    final enabled = await ref.read(biometricServiceProvider).isBiometricLoginEnabled();
-    if (mounted) setState(() => _biometricEnabled = enabled);
-  }
-
-  Future<void> _toggleBiometric(bool value) async {
-    final service = ref.read(biometricServiceProvider);
-    final isAvailable = await service.isAvailable();
-
-    if (!isAvailable) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Biometric authentication is not available on this device.')),
-      );
-      return;
-    }
-
-    if (value) {
-      // Verify identity before enabling
-      final authenticated = await service.authenticate(
-        reason: 'Confirm your biometric to enable fingerprint login',
-      );
-      if (!authenticated) return;
-    }
-
-    await service.setBiometricLoginEnabled(value);
-    if (mounted) setState(() => _biometricEnabled = value);
-  }
-
 
 
 
@@ -127,28 +91,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
                       }),
                       
+
                       const SizedBox(height: 24),
                       const Text(
-                        "Security",
+                        "Appearance",
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
-                      _menuItem(Icons.lock_outline_rounded, 'Change Password',
-                          Colors.redAccent, onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
-                        );
-                      }),
-                      _biometricTile(),
-                      _menuItem(Icons.delete_outline_rounded, 'Delete Account',
-                          Colors.red, onTap: () {
-                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Request to delete account sent. Please contact support.")),
-                            );
-                          }),
-
+                      _themeSettingsTile(),
+                      
                       const SizedBox(height: 24),
                       const Text(
                         "App Features",
@@ -184,13 +136,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
 
                       _menuItem(
-                        Icons.sensors_outlined,
-                        'Sensor Lab',
+                        Icons.science_outlined,
+                        'Security & Features',
                         Colors.deepPurple,
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const SensorLabScreen()),
+                            MaterialPageRoute(builder: (_) => const ExperimentalFeaturesScreen()),
                           );
                         },
                       ),
@@ -280,16 +232,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            // Role Badge
+            // Improved Role Badge
             if (user?.role != null)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: user?.role == 'seller' ? Colors.teal : Colors.blue,
+                  color: user?.role?.toLowerCase() == 'seller' 
+                      ? Colors.teal 
+                      : (user?.role?.toLowerCase() == 'admin' ? Colors.redAccent : Colors.blue),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  user?.role == 'seller' ? "Seller Account" : "Buyer Account",
+                  user?.role?.toLowerCase() == 'seller' 
+                      ? "Seller Account" 
+                      : (user?.role?.toLowerCase() == 'admin' ? "Admin Account" : "Buyer Account"),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -365,10 +321,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _biometricTile() {
+  Widget _themeSettingsTile() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeState = ref.watch(themeViewModelProvider);
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -380,40 +338,93 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ],
       ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: (_biometricEnabled ? Colors.green : Colors.grey).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _themeOption(
+                icon: Icons.light_mode_outlined,
+                label: 'Light',
+                mode: AppThemeMode.light,
+                isSelected: themeState.themeMode == AppThemeMode.light,
+              ),
+              _themeOption(
+                icon: Icons.dark_mode_outlined,
+                label: 'Dark',
+                mode: AppThemeMode.dark,
+                isSelected: themeState.themeMode == AppThemeMode.dark,
+              ),
+              _themeOption(
+                icon: Icons.sensors_outlined,
+                label: 'Sensor',
+                mode: AppThemeMode.sensor,
+                isSelected: themeState.themeMode == AppThemeMode.sensor,
+              ),
+            ],
           ),
-          child: Icon(
-            Icons.fingerprint,
-            color: _biometricEnabled ? Colors.green : Colors.grey,
-            size: 22,
+          if (themeState.isAutoThemeEnabled) ...[
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Theme will automatically switch based on your light sensor readings.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _themeOption({
+    required IconData icon,
+    required String label,
+    required AppThemeMode mode,
+    required bool isSelected,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = Colors.green;
+    
+    return GestureDetector(
+      onTap: () => ref.read(themeViewModelProvider.notifier).setThemeMode(mode),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? activeColor.withValues(alpha: 0.1) 
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? activeColor : Colors.transparent,
+            width: 1.5,
           ),
         ),
-        title: Text(
-          'Fingerprint Login',
-          style: TextStyle(
-              fontWeight: FontWeight.w500, 
-              fontSize: 15,
-              color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-        subtitle: Text(
-          _biometricEnabled ? 'Enabled — tap to disable' : 'Enable quick login with fingerprint',
-          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-        ),
-        trailing: Switch(
-          value: _biometricEnabled,
-          onChanged: _toggleBiometric,
-          activeThumbColor: Colors.green,
-          activeTrackColor: Colors.green.withValues(alpha: 0.3),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? activeColor : (isDark ? Colors.grey[400] : Colors.grey[600]),
+              size: 28,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? activeColor : (isDark ? Colors.grey[400] : Colors.grey[600]),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
 
   Widget _logoutButton(BuildContext context, WidgetRef ref) {
     return SizedBox(

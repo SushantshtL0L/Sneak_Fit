@@ -142,12 +142,15 @@ class _ProductDetailScreenNewState
             // Product Image
             Center(
               child: Container(
-                height: 200, // Reduced from 250
+                height: 200, 
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1A1A1A) : Colors.grey[100],
                   borderRadius: BorderRadius.circular(20),
                   border: isDark ? Border.all(color: Colors.white10) : null,
+                  boxShadow: isDark 
+                    ? [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))]
+                    : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10))],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
@@ -493,7 +496,14 @@ class _ProductDetailScreenNewState
         ),
         const SizedBox(height: 16),
         if (state.isLoading)
-          const Center(child: CircularProgressIndicator(color: Color(0xFF23D19D)))
+          // Premium Skeleton Loading
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 2,
+            separatorBuilder: (context, index) => const Divider(height: 32),
+            itemBuilder: (context, index) => _buildReviewSkeleton(isDark),
+          )
         else if (state.reviews.isEmpty)
           Container(
             padding: const EdgeInsets.all(24),
@@ -525,6 +535,37 @@ class _ProductDetailScreenNewState
               return _buildReviewTile(review, isDark);
             },
           ),
+      ],
+    );
+  }
+
+  Widget _buildReviewSkeleton(bool isDark) {
+    final baseColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[200]!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(color: baseColor, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(width: 100, height: 12, decoration: BoxDecoration(color: baseColor, borderRadius: BorderRadius.circular(4))),
+                const SizedBox(height: 6),
+                Container(width: 60, height: 10, decoration: BoxDecoration(color: baseColor, borderRadius: BorderRadius.circular(4))),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(width: double.infinity, height: 12, decoration: BoxDecoration(color: baseColor, borderRadius: BorderRadius.circular(4))),
+        const SizedBox(height: 8),
+        Container(width: 200, height: 12, decoration: BoxDecoration(color: baseColor, borderRadius: BorderRadius.circular(4))),
       ],
     );
   }

@@ -83,11 +83,11 @@ class AllProductsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(12),
                   child: GridView.builder(
                     itemCount: itemsToDisplay.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 0.65,
+                      childAspectRatio: MediaQuery.of(context).size.width > 600 ? 0.75 : 0.65,
                     ),
                     itemBuilder: (context, index) {
                       final item = itemsToDisplay[index];

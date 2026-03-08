@@ -60,9 +60,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       : const [
           HomeScreen(),
           ThriftsScreen(),
-          WishlistScreen(),
-          CartScreen(),
-          ProfileScreen(),
+          WishlistScreen(),   // index 2 – accessible via nav
+          CartScreen(),       // index 3 – FAB center
+          ProfileScreen(),    // index 4
         ];
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -129,12 +129,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               MaterialPageRoute(builder: (_) => const AddItemScreen()),
             );
           } else {
-            setState(() => _currentIndex = 2);
+            setState(() => _currentIndex = 3); // Go to Cart
           }
         },
         backgroundColor: isDark ? Colors.white : Colors.black,
         child: Icon(
-          isSeller ? Icons.add : Icons.favorite,
+          isSeller ? Icons.add : Icons.shopping_cart_rounded,
           color: isDark ? Colors.black : Colors.white,
         ),
       ),
@@ -159,8 +159,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               : [
                   _navItem(Icons.home_outlined, 'Home', 0, isDark),
                   _navItem(Icons.eco_outlined, 'Thrifts', 1, isDark),
-                  const SizedBox(width: 48), // Gap for FAB
-                  _navItem(Icons.shopping_cart_outlined, 'Cart', 3, isDark),
+                  const SizedBox(width: 72), // Gap for FAB
+                  _navItem(Icons.favorite_border_rounded, 'Wishlist', 2, isDark),
                   _navItem(Icons.person_outline, 'Profile', 4, isDark),
                 ],
           ),

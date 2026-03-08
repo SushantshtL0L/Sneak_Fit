@@ -90,11 +90,11 @@ class ThriftsScreen extends ConsumerWidget {
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
                       crossAxisSpacing: 15,
                       mainAxisSpacing: 15,
-                      childAspectRatio: 0.68,
+                      childAspectRatio: MediaQuery.of(context).size.width > 600 ? 0.75 : 0.68,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => _thriftProductCard(context, thriftItems[index], ref, isDark),
